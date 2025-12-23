@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import * as api from '../api/shipments';
+import ShipmentForm from "../components/ShipmentForm";
+import { createPortal } from "react-dom";
 
 export default function Shipments() {
     const [rows, setRows] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState();
     const [queryId, setQueryId] = useState('');
+    const [showModal, setShowModal] = useState(false);
 
     // Estados de paginación
     const [currentPage, setCurrentPage] = useState(1);  // página actual (1-based)
@@ -13,6 +16,95 @@ export default function Shipments() {
 
     // Cargar todos al montar
     useEffect(() => { (async () => { await loadAll(); })(); }, []);
+
+    function openModal() { setShowModal(true); }
+    function closeModal() { setShowModal(false); }
+    
+    const [deleteId, setDeleteId] = useState(null);
+    const [deleting, setDeleting] = useState(false);
+
+    function openDeleteModal(id) { setDeleteId(id); }
+    function closeDeleteModal() { setDeleteId(null); }
+
+    const [scanOutId, setScanOutId] = useState(null);
+    const [scanOutInput, setScanOutInput] = useState("");
+
+    useEffect(() => {
+        if (showModal) {
+            document.body.classList.add('modal-open');
+            document.body.style.overflow = 'hidden';
+            const timer = setTimeout(() => {
+                const input = document.querySelector('.modal input[name="id"]');
+                input?.focus();
+            }, 50);
+            return () => {
+                clearTimeout(timer);
+                document.body.classList.remove('modal-open');
+                document.body.style.overflow = '';
+            };
+        }
+        else
+        {
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+        }
+    }, [showModal]);
+
+    useEffect(() => {
+    if (deleteId) {
+        document.body.classList.add("modal-open");
+        document.body.style.overflow = "hidden";
+        return () => {
+            document.body.classList.remove("modal-open");
+            document.body.style.overflow = "";
+      };
+    }
+    }, [deleteId]);
+
+  
+    function openScanOutModal(id) {
+        setScanOutId(id);
+        // Prellenar con ahora (local) → formato "YYYY-MM-DDTHH:mm"
+        const now = new Date();
+        const pad = (n) => String(n).padStart(2, "0");
+        const yyyy = now.getFullYear();
+        const mm = pad(now.getMonth() + 1);
+        const dd = pad(now.getDate());
+        const hh = pad(now.getHours());
+        const min = pad(now.getMinutes());
+        setScanOutInput(`${yyyy}-${mm}-${dd}T${hh}:${min}`);
+    }
+    function closeScanOutModal() {
+        setScanOutId(null);
+        setScanOutInput("");
+    }
+    
+    async function handleCreateFromModal(dto) {
+        try {
+            const created = await api.create(dto);
+            setRows(prev => [created, ...prev]);
+            setCurrentPage(1);
+            setShowModal(false);
+        } catch (err) {
+            setError(err.message || 'Error creando el registro');
+        }
+    }
+
+    async function confirmDelete() {
+        if (!deleteId) return;
+        setDeleting(true);
+        setError(undefined);
+        try{
+            await api.remove(deleteId);
+            setRows(prev => prev.filter(r => r.id !== deleteId));
+            closeDeleteModal();
+        }
+        catch(e){
+            setError(e.message || "Error al eliminar");
+        } finally {
+            setDeleting(false);
+        }
+    }
 
     async function loadAll() {
         setLoading(true); setError(undefined);
@@ -45,6 +137,39 @@ export default function Shipments() {
     }
 
     const fmtDate = (d) => (d ? new Date(d).toLocaleString() : '');
+
+
+    
+    function toIsoFromLocalInput(value) {
+        if (!value) return null;
+        const dt = new Date(value);
+        return isNaN(dt.getTime()) ? null : dt.toISOString();
+    }
+    async function confirmScanOut() {
+        if (!scanOutId) return;
+        const iso = toIsoFromLocalInput(scanOutInput);
+        if (!iso) { setError("Fecha/hora inválida."); return; }
+
+        setLoading(true); setError(undefined);
+        try {
+        const updated = await api.scanOut(scanOutId, iso, "2");
+        setRows(prev => prev.map(r =>
+            r.id === scanOutId
+            ? {
+                ...r,
+                status: "2",
+                shipOutDate: updated.shipOutDate ?? updated.ShipOutDate ?? iso
+                }
+            : r
+        ));
+        closeScanOutModal();
+        } catch (e) {
+            setError(e.message || "Error en Scan Out");
+        } finally {
+            setLoading(false);
+        }
+    }
+
 
     // Variables de paginacion
     const totalRows = rows.length;
@@ -95,110 +220,209 @@ export default function Shipments() {
         );
     }
 
-  return (
-    <>
-    <div className="container my-4">
-        <h2 className="mt-3">Shipments</h2>
-        {/* Toolbar */}
-        <div className="d-flex flex-wrap gap-2 my-3 align-items-center">
-            <button className="btn btn-primary" onClick={loadAll}>Load all</button>
-
-            <input className="form-control" style={{ maxWidth: 260 }} value={queryId} onChange={(e) => setQueryId(e.target.value)} placeholder="Search By ID" />
-            <button className="btn btn-outline-primary" onClick={searchById}>Search</button>
-
-            <div className="d-flex align-items-center ms-auto gap-2">
-                <label className="text-muted">Page Rows:</label>
-                <select className="form-select" style={{ width: 100 }} value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }} >
-                    <option value={5}>5</option>
-                    <option value={10}>10</option>
-                    <option value={25}>25</option>
-                    <option value={50}>50</option>
-                    <option value={100}>100</option>
-                </select>
+    const modalPortal = showModal ? createPortal(
+        <>
+        <div className="modal fade show" style={{ display: 'block', zIndex: 1060 }} tabIndex="-1" role="dialog" aria-modal="true">
+            <div className="modal-dialog modal-lg">
+                <div className="modal-content">
+                    <div className="modal-header">
+                        <h5 className="modal-title">Scan In</h5>
+                        <button type="button" className="btn-close" onClick={closeModal} aria-label="Close"></button>
+                    </div>
+                    <div className="modal-body">
+                        <ShipmentForm onSubmit={handleCreateFromModal} />
+                    </div>
+                    <div className="modal-footer">
+                        <button className="btn btn-secondary" onClick={closeModal}>Cancel</button>
+                    </div>
                 </div>
             </div>
-
-            {loading && <div className="alert alert-info">Loading...</div>}
-            {error   && <div className="alert alert-danger">{error}</div>}
-
-            {/* Tabla */}
-            <div className="table-responsive">
-                <table className="table table-striped table-hover">
-                    <thead className="table-dark">
-                        <tr>
-                            <th>ID</th>
-                            <th>HAWB</th>
-                            <th>INV Ref PO</th>
-                            <th>HP Part Num</th>
-                            <th>IEC Part Num</th>
-                            <th>Qty</th>
-                            <th>Status</th>
-                            <th>Carrier</th>
-                            <th>Shipper</th>
-                            <th>ShipOutStatus</th>
-                            <th>RemainQty</th>
-                            <th>ShipOutDate</th>
-                            <th>RcvdDate</th>
-                            <th>Truck#</th>
-                            <th>Seal#</th>
-                            <th>Container#</th>
-                            <th>IMX_INV#</th>
-                            <th>Operator</th>
-                            <th>Cdt</th>
-                            <th>Udt</th>
-                            <th>Bulks</th>
-                            <th>BoxPlt</th>
-                            <th>Bin</th>
-                            <th>Remark</th>
-                            <th>Weight</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {pageRows.map((s) => (
-                        <tr key={s.id}>
-                            <td>{s.id}</td>
-                            <td>{s.hawb}</td>
-                            <td>{s.invRefPo}</td>
-                            <td>{s.hpPartNum}</td>
-                            <td>{s.iecPartNum}</td>
-                            <td>{s.qty ?? ''}</td>
-                            <td>{s.status}</td>
-                            <td>{s.carrier}</td>
-                            <td>{s.shipper}</td>
-                            <td>{s.shipOutStatus}</td>
-                            <td>{s.remainQty ?? ''}</td>
-                            <td>{fmtDate(s.shipOutDate)}</td>
-                            <td>{fmtDate(s.rcvdDate)}</td>
-                            <td>{s.truckNum}</td>
-                            <td>{s.sealNum}</td>
-                            <td>{s.containerNum}</td>
-                            <td>{s.imxInvNum}</td>
-                            <td>{s.operator}</td>
-                            <td>{fmtDate(s.cdt)}</td>
-                            <td>{fmtDate(s.udt)}</td>
-                            <td>{s.bulks}</td>
-                            <td>{s.boxPlt}</td>
-                            <td>{s.bin}</td>
-                            <td>{s.remark}</td>
-                            <td>{s.weight}</td>
-                        </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-
-            {/* 🔹 Footer de paginación */}
-            <div className="d-flex align-items-center justify-content-between mt-2">
-                <small className="text-muted">
-                    Showing <strong>{startIndex + 1}</strong> – <strong>{endIndex}</strong> of <strong>{totalRows}</strong> rows
-                </small>
-                {renderPagination()}
-            </div>
-
-            {!loading && !error && rows.length === 0 && (
-                <div className="alert alert-secondary mt-3">No records.</div>
-            )}
         </div>
-        </>
-  );
+        <div className="modal-backdrop fade show" style={{ zIndex: 1050 }} onClick={closeModal}></div>
+        </>,
+        document.body
+    ) : null;
+
+    const deletePortal = deleteId
+    ? createPortal(
+        <>
+        <div className="modal fade show" style={{ display: "block", zIndex: 1060 }} tabIndex="-1" role="dialog" aria-modal="true">
+            <div className="modal-dialog">
+                <div className="modal-content">
+                    <div className="modal-header">
+                        <h5 className="modal-title">Confirmar eliminación</h5>
+                        <button className="btn-close" onClick={closeDeleteModal} aria-label="Close"></button>
+                    </div>
+                    <div className="modal-body">
+                    <p>
+                        ¿Seguro que quieres eliminar el envío con ID{" "}
+                        <strong>{deleteId}</strong>?
+                    </p>
+                    <p className="text-warning small mb-0">
+                        (Función de desarrollo: no se usa en producción)
+                    </p>
+                    </div>
+                    <div className="modal-footer">
+                        <button className="btn btn-secondary" onClick={closeDeleteModal} disabled={deleting}>
+                            Cancelar
+                        </button>
+                        <button className="btn btn-danger" onClick={confirmDelete} disabled={deleting}>
+                            {deleting ? "Eliminando..." : "Eliminar"}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div
+            className="modal-backdrop fade show"
+            style={{ zIndex: 1050 }}
+            onClick={closeDeleteModal}
+        />
+        </>,
+        document.body
+    ) : null;
+
+    
+    const scanOutPortal = scanOutId
+    ? createPortal(
+        <>
+        <div className="modal fade show" style={{ display: "block", zIndex: 1060 }} tabIndex="-1" role="dialog" aria-modal="true">
+            <div className="modal-dialog">
+                <div className="modal-content">
+                    <div className="modal-header">
+                        <h5 className="modal-title">Confirm Scan Out</h5>
+                        <button className="btn-close" onClick={closeScanOutModal} aria-label="Close"></button>
+                    </div>
+                    <div className="modal-body">
+                        <div className="mb-3">
+                            <label className="form-label">Fecha/Hora de salida</label>
+                            <input type="datetime-local" className="form-control" value={scanOutInput} onChange={(e) => setScanOutInput(e.target.value)}/>
+                            {/* <div className="form-text">
+                                Confirma la hora de salida; se actualizarán STATUS=2 y ShipOutDate.
+                            </div> */}
+                        </div>
+                    </div>
+                    <div className="modal-footer">
+                        <button className="btn btn-secondary" onClick={closeScanOutModal}>Cancel</button>
+                        <button className="btn btn-success" onClick={confirmScanOut}>
+                            <i className="bi bi-box-arrow-right me-2" />
+                            Confirm Scan Out
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div
+            className="modal-backdrop fade show"
+            style={{ zIndex: 1050 }}
+            onClick={closeScanOutModal}
+        />
+        </>,
+        document.body
+      )
+    : null;
+
+    return (
+        <>
+        <div className="container my-4">
+            <h2 className="mt-3">Shipments</h2>
+            {/* Toolbar */}
+            <div className="d-flex flex-wrap gap-2 my-3 align-items-center">
+                <button className="btn btn-primary" onClick={loadAll}>Load all</button>
+                
+                <div className="d-flex gap-2">
+                    <button className="btn btn-success" onClick={openModal}>Scan In</button>
+                </div>
+
+                <input className="form-control" style={{ maxWidth: 260 }} value={queryId} onChange={(e) => setQueryId(e.target.value)} placeholder="Search By ID" />
+                <button className="btn btn-outline-primary" onClick={searchById}>Search</button>
+
+                <div className="d-flex align-items-center ms-auto gap-2">
+                    <label className="text-muted">Page Rows:</label>
+                    <select className="form-select" style={{ width: 100 }} value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }} >
+                        <option value={5}>5</option>
+                        <option value={10}>10</option>
+                        <option value={25}>25</option>
+                        <option value={50}>50</option>
+                        <option value={100}>100</option>
+                    </select>
+                    </div>
+                </div>
+
+                {loading && <div className="alert alert-info">Loading...</div>}
+                {error   && <div className="alert alert-danger">{error}</div>}
+                
+                
+                {/* Tabla */}
+                <div className="table-responsive">
+                    <table className="table table-striped table-hover">
+                        <thead className="table-dark">
+                            <tr>
+                                <th>Status</th>
+                                <th style={{ minWidth: '150px' }}>ID</th>
+                                <th>HAWB</th>
+                                <th>INV Ref PO</th>
+                                <th>HP Part Num</th>
+                                <th>IEC Part Num</th>
+                                <th>Qty</th>
+                                <th>Bulks</th>
+                                <th>Carrier</th>
+                                <th>Bin</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {pageRows.map((s) => (
+                            <tr key={s.id}>
+                                <td>
+                                    {s.status == '1' ? ( <span className="badge bg-success">In</span> ) 
+                                    : s.status == '2' ? ( <span className="badge bg-primary">Out</span> ) 
+                                    : ( s.status )}
+                                </td>
+                                <td>{s.id}</td>
+                                <td>{s.hawb}</td>
+                                <td>{s.invRefPo}</td>
+                                <td>{s.hpPartNum}</td>
+                                <td>{s.iecPartNum}</td>
+                                <td>{s.qty ?? ''}</td>
+                                <td>{s.bulks}</td>
+                                <td>{s.carrier}</td>
+                                <td>{s.bin}</td>
+                                <td>
+                                    {/* Unicamente para propositos de Dev */}
+                                    {/* <button className="btn btn-sm btn-outline-danger me-1" onClick={() => openDeleteModal(s.id)}>
+                                        <i className="bi bi-trash" />
+                                    </button> */}
+                                    {s.status == '1' || s.status != '2' ? ( <button className="btn btn-sm btn-outline-dark me-1" onClick={() => openScanOutModal(s.id)} title="Scan Out"><i className="bi bi-arrow-bar-right" /> Scan Out</button> ) 
+                                    : s.status == '2' ? (<span className="badge bg-primary align-self-center me-1"><i className="bi bi-check2-circle me-1"/> Out</span>) 
+                                    : ( <span className="badge bg-warning me-1">Unknown</span> )}
+                                    <button className="btn btn-sm btn-outline-info me-1">
+                                        <i className="bi bi-highlighter" />
+                                    </button>
+                                </td>
+                            </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* Footer de paginación */}
+                <div className="d-flex align-items-center justify-content-between mt-2">
+                    <small className="text-muted">
+                        Showing <strong>{startIndex + 1}</strong> – <strong>{endIndex}</strong> of <strong>{totalRows}</strong> rows
+                    </small>
+                    {renderPagination()}
+                </div>
+
+                {!loading && !error && rows.length === 0 && (
+                    <div className="alert alert-secondary mt-3">No records.</div>
+                )}
+            </div>
+
+            {/* Modal via Portal */}
+            {modalPortal}
+            {deletePortal}
+            {scanOutPortal}
+            </>
+    );
 }

@@ -1,8 +1,17 @@
+import React from "react";
+import { Link } from "react-router-dom";
+
 export default function Home(){
     return (
-        <div>
-            <h2 className="mt-3">Inicio</h2>
-            <p className="text-muted">Bienvenido a IEP Shipping App.</p>
+        <div className="container">
+            <h2 className="mt-3">Home</h2>
+            <p className="text-muted">Welcome To IEP Crossing Dock Shipping App.</p>
+
+            <div className="btn-group btn-group-lg container-fluid">
+                <Link style={{ padding: "2em" }} className="btn btn-outline-primary" to="/shipments"><i className="i i-pencil" /><i class="bi bi-truck" /> Shipments</Link>
+                <Link href="#" style={{ padding: "2em" }} className="btn btn-outline-primary"><i className="i i-pencil" /><i class="bi bi-printer" /> Print Labels</Link>
+                <Link href="#" style={{ padding: "2em" }} className="btn btn-outline-primary"><i class="bi bi-file-earmark-bar-graph" /> Reports</Link>
+            </div>
         </div>
     )
 }

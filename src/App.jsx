@@ -2,13 +2,8 @@ import { useState } from 'react'
 import { Routes, Route } from 'react-router-dom';
 import Navbar from './components/navbar'
 import Shipments from './pages/Shipments';
-// import './App.css'
-
-
-function Home(){
-  return <h2>Inicio</h2>
-}
-
+import Home from './pages/Home';
+import ShipmentForm from './components/ShipmentForm';
 
 function App() {
   const [count, setCount] = useState(0)
@@ -19,6 +14,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/shipments" element={<Shipments />} />
+          <Route path="/shipments/new" element={<ShipmentForm />} />
           <Route path="*" element={<p>Página no encontrada</p>} />
         </Routes>
       </div>
