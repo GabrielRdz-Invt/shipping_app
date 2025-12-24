@@ -78,3 +78,18 @@ export async function scanOut(id, shipOutDateIso, statusText = "2") {
     return res.json();
 }
 
+
+/** [UPDATE] PUT: actualiza un envío por ID (usa el DTO de edición) */
+export async function update(id, body) {
+    const res = await fetch(`${BASE_URL}/IepCrossingDockShipments/${encodeURIComponent(id)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+    });
+    if (res.status === 404) throw new Error('No existe el envío');
+    if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        throw new Error(text || `HTTP ${res.status}`);
+    }
+    return res.json();
+}

@@ -29,6 +29,12 @@ export default function Shipments() {
     const [scanOutId, setScanOutId] = useState(null);
     const [scanOutInput, setScanOutInput] = useState("");
 
+    // Update shipments
+    const [editId, setEditId] = useState(null);
+    const [showEdit, setShowEdit] = useState(false);
+    const [editInitial, setEditInitial] = useState(null);
+
+
     useEffect(() => {
         if (showModal) {
             document.body.classList.add('modal-open');
@@ -61,6 +67,17 @@ export default function Shipments() {
     }
     }, [deleteId]);
 
+    // [UPDATE] Bloqueo de scroll para modal de edición
+    useEffect(() => {
+        if (showEdit) {
+                document.body.classList.add("modal-open");
+                document.body.style.overflow = "hidden";
+            return () => {
+                document.body.classList.remove("modal-open");
+                document.body.style.overflow = "";
+            };
+        }
+    }, [showEdit]);
   
     function openScanOutModal(id) {
         setScanOutId(id);
@@ -74,6 +91,7 @@ export default function Shipments() {
         const min = pad(now.getMinutes());
         setScanOutInput(`${yyyy}-${mm}-${dd}T${hh}:${min}`);
     }
+
     function closeScanOutModal() {
         setScanOutId(null);
         setScanOutInput("");
@@ -136,9 +154,37 @@ export default function Shipments() {
         }
     }
 
+    
+    // [UPDATE] Abrir modal de edición con prefill
+    function openEditModal(row) {
+        setEditId(row.id);
+        setEditInitial(row);
+        setShowEdit(true);
+    }
+
+    // [UPDATE] Cerrar modal de edición
+    function closeEditModal() {
+        setShowEdit(false);
+        setEditId(null);
+        setEditInitial(null);
+    }
+
+    // [UPDATE] Guardar cambios (PUT) y actualizar la fila
+    async function handleUpdateFromModal(dto) {
+        if (!editId) return;
+        setLoading(true); setError(undefined);
+        try {
+            const updated = await api.update(editId, dto);
+            setRows((prev) => prev.map((r) => (r.id === editId ? { ...r, ...updated } : r)));
+            setShowEdit(false);
+        } catch (e) {
+            setError(e.message || "Error al actualizar");
+        } finally {
+            setLoading(false);
+        }
+    }
+
     const fmtDate = (d) => (d ? new Date(d).toLocaleString() : '');
-
-
     
     function toIsoFromLocalInput(value) {
         if (!value) return null;
@@ -281,7 +327,6 @@ export default function Shipments() {
         </>,
         document.body
     ) : null;
-
     
     const scanOutPortal = scanOutId
     ? createPortal(
@@ -319,7 +364,52 @@ export default function Shipments() {
         />
         </>,
         document.body
-      )
+    )
+    : null;
+    
+    // [UPDATE] Guardar cambios (PUT) y actualizar la fila
+    async function handleUpdateFromModal(dto) {
+        if (!editId) return;
+        setLoading(true); setError(undefined);
+        try {
+            const updated = await api.update(editId, dto);
+            setRows((prev) => prev.map((r) => (r.id === editId ? { ...r, ...updated } : r)));
+            setShowEdit(false);
+        } catch (e) {
+            setError(e.message || "Error al actualizar");
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    // [UPDATE] Portal de modal de edición
+    const editPortal = showEdit
+    ? createPortal(
+        <>
+        <div className="modal fade show" style={{ display: "block", zIndex: 1060 }} tabIndex="-1" role="dialog" aria-modal="true" >
+        <div className="modal-dialog modal-lg">
+            <div className="modal-content">
+            <div className="modal-header">
+                <h5 className="modal-title">Editar envío</h5>
+                <button type="button" className="btn-close" onClick={closeEditModal} aria-label="Close"></button>
+            </div>
+            <div className="modal-body">
+                <ShipmentForm onSubmit={handleUpdateFromModal} initialData={editInitial} />
+            </div>
+            <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={closeEditModal}>Cancel</button>
+            </div>
+            </div>
+        </div>
+        </div>
+        <div
+        className="modal-backdrop fade show"
+        style={{ zIndex: 1050 }}
+        onClick={closeEditModal}
+        />
+        </>,
+        document.body
+    )
     : null;
 
     return (
@@ -396,7 +486,7 @@ export default function Shipments() {
                                     {s.status == '1' || s.status != '2' ? ( <button className="btn btn-sm btn-outline-dark me-1" onClick={() => openScanOutModal(s.id)} title="Scan Out"><i className="bi bi-arrow-bar-right" /> Scan Out</button> ) 
                                     : s.status == '2' ? (<span className="badge bg-primary align-self-center me-1"><i className="bi bi-check2-circle me-1"/> Out</span>) 
                                     : ( <span className="badge bg-warning me-1">Unknown</span> )}
-                                    <button className="btn btn-sm btn-outline-info me-1">
+                                    <button className="btn btn-sm btn-outline-info" title="Update" onClick={() => openEditModal(s)}>
                                         <i className="bi bi-highlighter" />
                                     </button>
                                 </td>
@@ -423,6 +513,7 @@ export default function Shipments() {
             {modalPortal}
             {deletePortal}
             {scanOutPortal}
+            {editPortal}
             </>
     );
 }
