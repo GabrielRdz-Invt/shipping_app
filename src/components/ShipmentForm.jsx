@@ -42,26 +42,27 @@ export default function ShipmentForm({ onSubmit, initialData }) {
   });
 
   /** [UPDATE] Prefill: carga los datos seleccionados en el formulario (solo si initialData existe) */
-  useEffect(() => {
-    if (!initialData) return; // ← evita reset en cada render cuando estás en Scan In
-    setForm({
-      id: initialData.id ?? '',
-      carrier: initialData.carrier ?? '',
-      hawb: initialData.hawb ?? '',
-      invRefPo: initialData.invRefPo ?? '',
-      iecPartNum: initialData.iecPartNum ?? '',
-      qty: initialData.qty ?? '',
-      bulks: initialData.bulks ?? '',
-      boxPlt: initialData.boxPlt ?? '',
-      rcvdDate: toLocalInputFromISO(initialData.rcvdDate ?? initialData.RcvdDate),
-      weight: initialData.weight ?? '',
-      shipper: initialData.shipper ?? '',
-      bin: initialData.bin ?? '',
-      remark: initialData.remark ?? '',
-      operator: initialData.operator ?? '',
-      // hpPartNum: initialData.hpPartNum ?? ''
-    });
-  }, [initialData]);
+    useEffect(() => {
+        if (!initialData) return;
+        // [CAMBIO] Prefill del ID (y resto de campos si existen) cuando recibimos initialData
+        setForm({
+            id: initialData.id ?? "",
+            carrier: initialData.carrier ?? "",
+            hawb: initialData.hawb ?? "",
+            invRefPo: initialData.invRefPo ?? "",
+            iecPartNum: initialData.iecPartNum ?? "",
+            qty: initialData.qty ?? "",
+            bulks: initialData.bulks ?? "",
+            boxPlt: initialData.boxPlt ?? "",
+            rcvdDate: toLocalInputFromISO(initialData.rcvdDate ?? initialData.RcvdDate),
+            weight: initialData.weight ?? "",
+            shipper: initialData.shipper ?? "",
+            bin: initialData.bin ?? "",
+            remark: initialData.remark ?? "",
+            operator: initialData.operator ?? "",
+        });
+    }, [initialData]);
+
 
   function handleChange(e) {
     const { name, value } = e.target;
@@ -70,28 +71,24 @@ export default function ShipmentForm({ onSubmit, initialData }) {
 
   /** [UPDATE] Construye el DTO y dispara onSubmit (PUT/POST en el padre) */
   function handleSubmit(e) {
-    e.preventDefault();
-    if (!form.id.trim()) {
-      alert('ID es requerido');
-      return;
-    }
+    
+e.preventDefault();
+    // [CAMBIO] Permitimos enviar dto sin id para que el backend lo genere si es necesario
     const dto = {
-      // En POST (Scan In) el backend requiere ID; en PUT se ignora por ruta.
-      id: form.id.trim(),
-      carrier: form.carrier || null,
-      hawb: form.hawb || null,
-      invRefPo: form.invRefPo || null,
-      iecPartNum: form.iecPartNum || null,
-      qty: form.qty !== '' ? Number(form.qty) : null,
-      bulks: form.bulks || null,
-      boxPlt: form.boxPlt || null,
-      rcvdDate: toISOFromLocalInput(form.rcvdDate),
-      weight: form.weight || null,
-      shipper: form.shipper || null,
-      bin: form.bin || null,
-      remark: form.remark || null,
-      operator: form.operator || null,
-      // hpPartNum: form.hpPartNum || null
+        id: form.id.trim(),
+        carrier: form.carrier || null,
+        hawb: form.hawb || null,
+        invRefPo: form.invRefPo || null,
+        iecPartNum: form.iecPartNum || null,
+        qty: form.qty !== "" ? Number(form.qty) : null,
+        bulks: form.bulks || null,
+        boxPlt: form.boxPlt || null,
+        rcvdDate: toISOFromLocalInput(form.rcvdDate),
+        weight: form.weight || null,
+        shipper: form.shipper || null,
+        bin: form.bin || null,
+        remark: form.remark || null,
+        operator: form.operator || null,
     };
     onSubmit(dto);
   }
@@ -100,65 +97,70 @@ export default function ShipmentForm({ onSubmit, initialData }) {
 
   return (
     <form onSubmit={handleSubmit} className="row g-2">
-      <div className="col-md-3">
-        <input
-          className="form-control"
-          name="id"
-          placeholder="ID *"
-          value={form.id}
-          onChange={handleChange}
-          required
-          readOnly={isEdit}     // ← en edición no permitir cambiar el ID
-          autoComplete="on"
-        />
-      </div>
+        <div className="col-md-3">
+            <label className="form-label">ID</label>
+            <input type="text" name="id" className="form-control" value={form.id} onChange={handleChange} readOnly={!isEdit} required={isEdit} disabled />
+        </div>
 
-      <div className="col-sm-3">
-        <input className="form-control" name="carrier" placeholder="Carrier" value={form.carrier} onChange={handleChange} autoComplete="on" />
-      </div>
-      <div className="col-sm-3">
-        <input className="form-control" name="hawb" placeholder="HAWB" value={form.hawb} onChange={handleChange} autoComplete="on" />
-      </div>
-      <div className="col-sm-3">
-        <input className="form-control" name="invRefPo" placeholder="Inv/Ref/PO" value={form.invRefPo} onChange={handleChange} autoComplete="on" />
-      </div>
+        <div className="col-sm-3">
+            <label className="form-label">Carrier</label>
+            <input className="form-control" name="carrier" placeholder="Carrier" value={form.carrier} onChange={handleChange} autoComplete="on" />
+        </div>
+        <div className="col-sm-3">
+            <label className="form-label">HAWB</label>
+            <input className="form-control" name="hawb" placeholder="HAWB" value={form.hawb} onChange={handleChange} autoComplete="on" />
+        </div>
+        <div className="col-sm-3">
+            <label className="form-label">Inv/Ref/PO</label>
+            <input className="form-control" name="invRefPo" placeholder="Inv/Ref/PO" value={form.invRefPo} onChange={handleChange} autoComplete="on" />
+        </div>
 
-      <div className="col-sm-3">
-        <input className="form-control" name="iecPartNum" placeholder="IEC Part Num" value={form.iecPartNum} onChange={handleChange} autoComplete="on" />
-      </div>
-      <div className="col-sm-3">
-        <input className="form-control" type="number" name="qty" placeholder="Qty" value={form.qty} onChange={handleChange} />
-      </div>
-      <div className="col-sm-3">
-        <input className="form-control" name="bulks" placeholder="Bulks" value={form.bulks} onChange={handleChange} autoComplete="on" />
-      </div>
-      <div className="col-sm-3">
-        <input className="form-control" name="boxPlt" placeholder="Box/Plt" value={form.boxPlt} onChange={handleChange} autoComplete="on" />
-      </div>
+        <div className="col-sm-3">
+            <label className="form-label">IEC Part Num</label>
+            <input className="form-control" name="iecPartNum" placeholder="IEC Part Num" value={form.iecPartNum} onChange={handleChange} autoComplete="on" />
+        </div>
+        <div className="col-sm-3">
+            <label className="form-label">Qty</label>
+            <input className="form-control" type="number" name="qty" placeholder="Qty" value={form.qty} onChange={handleChange} min={1} />
+        </div>
+        <div className="col-sm-3">
+            <label className="form-label">Bulks</label>
+            <input className="form-control" name="bulks" placeholder="Bulks" value={form.bulks} onChange={handleChange} autoComplete="on" min={1} />
+        </div>
+        <div className="col-sm-3">
+            <label className="form-label">Box/Plt</label>
+            <input className="form-control" name="boxPlt" placeholder="Box/Plt" value={form.boxPlt} onChange={handleChange} autoComplete="on" />
+        </div>
 
-      <div className="col-sm-4">
-        <input className="form-control" type="datetime-local" name="rcvdDate" placeholder="Rcv Date" value={form.rcvdDate} onChange={handleChange} />
-      </div>
-      <div className="col-sm-4">
-        <input className="form-control" name="weight" placeholder="Weight" value={form.weight} onChange={handleChange} autoComplete="on" />
-      </div>
-      <div className="col-sm-4">
-        <input className="form-control" name="shipper" placeholder="Shipper" value={form.shipper} onChange={handleChange} autoComplete="on" />
-      </div>
+        <div className="col-sm-4">
+            <label className="form-label">Rcv Date</label>
+            <input className="form-control" type="datetime-local" name="rcvdDate" placeholder="Rcv Date" value={form.rcvdDate} onChange={handleChange} />
+        </div>
+        <div className="col-sm-4">
+            <label className="form-label">Weight</label>
+            <input className="form-control" name="weight" placeholder="Weight" value={form.weight} onChange={handleChange} autoComplete="on" />
+        </div>
+        <div className="col-sm-4">
+            <label className="form-label">Shipper</label>
+            <input className="form-control" name="shipper" placeholder="Shipper" value={form.shipper} onChange={handleChange} autoComplete="on" />
+        </div>
 
-      <div className="col-sm-4">
-        <input className="form-control" name="bin" placeholder="Bin" value={form.bin} onChange={handleChange} autoComplete="on" />
-      </div>
-      <div className="col-sm-4">
-        <input className="form-control" name="remark" placeholder="Remark" value={form.remark} onChange={handleChange} autoComplete="on" />
-      </div>
-      <div className="col-sm-4">
-        <input className="form-control" name="operator" placeholder="Operator" value={form.operator} onChange={handleChange} autoComplete="on" />
-      </div>
+        <div className="col-sm-4">
+            <label className="form-label">Bin</label>
+            <input className="form-control" name="bin" placeholder="Bin" value={form.bin} onChange={handleChange} autoComplete="on" />
+        </div>
+        <div className="col-sm-4">
+            <label className="form-label">Remark</label>
+            <input className="form-control" name="remark" placeholder="Remark" value={form.remark} onChange={handleChange} autoComplete="on" />
+        </div>
+        <div className="col-sm-4">
+            <label className="form-label">Operator</label>
+            <input className="form-control" name="operator" placeholder="Operator" value={form.operator} onChange={handleChange} autoComplete="on" />
+        </div>
 
-      <div className="col-12 mt-2">
-        <button className="btn btn-success" type="submit">Guardar</button>
-      </div>
+        <div className="col-12 mt-2">
+            <button className="btn btn-success" type="submit">Guardar</button>
+        </div>
     </form>
   );
 }

@@ -78,7 +78,6 @@ export async function scanOut(id, shipOutDateIso, statusText = "2") {
     return res.json();
 }
 
-
 /** [UPDATE] PUT: actualiza un envío por ID (usa el DTO de edición) */
 export async function update(id, body) {
     const res = await fetch(`${BASE_URL}/IepCrossingDockShipments/${encodeURIComponent(id)}`, {
@@ -92,4 +91,67 @@ export async function update(id, body) {
         throw new Error(text || `HTTP ${res.status}`);
     }
     return res.json();
+}
+
+export async function getNextId() {
+    const res = await fetch(`${BASE_URL}/IepCrossingDockShipments/next-id`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json(); // { id: '2026-26-12-001' }
+}
+
+// [CAMBIO] Obtener reporte en JSON
+export async function getReport({ fromIso, toIso, dateField = 'rcvd' }) {
+  const params = new URLSearchParams();
+  params.set('from', fromIso);
+  params.set('to', toIso);
+  params.set('dateField', dateField);
+
+  const url = `${BASE_URL}/IepCrossingDockShipments/report?${params.toString()}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+// [FIX] Descargar CSV sin usar new URL (soporta BASE_URL relativo o absoluto)
+export async function downloadReportCsv({ fromIso, toIso, dateField = 'rcvd' }) {
+  const params = new URLSearchParams();
+  params.set('from', fromIso);
+  params.set('to', toIso);
+  params.set('dateField', dateField);
+
+  const url = `${BASE_URL}/IepCrossingDockShipments/report.csv?${params.toString()}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const blob = await res.blob();
+
+  const link = document.createElement('a');
+  const fileName = `report_${fromIso.substring(0,10)}_to_${toIso.substring(0,10)}_${dateField}.csv`;
+  link.href = URL.createObjectURL(blob);
+  link.download = fileName;
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+
+
+// [CAMBIO] Exportar PDF en cliente (jsPDF + autotable) — opcional
+export async function exportReportPdfClient(rows, { fromIso, toIso, dateField = 'rcvd' }) {
+  const { jsPDF } = await import('jspdf');
+  const autoTable = (await import('jspdf-autotable')).default;
+  const doc = new jsPDF();
+
+  doc.setFontSize(12);
+  doc.text(`Report ${dateField === 'shipout' ? 'Ship Out Date' : 'Scan In Date'}`, 14, 16);
+  doc.text(`Range: ${fromIso.substring(0,10)} to ${toIso.substring(0,10)}`, 14, 24);
+
+  const headers = [
+    'ID','Status','HAWB','INV Ref PO','IEC Part Num','Qty','Bulks','Carrier','Bin','RcvdDate','ShipOutDate','Operator'
+  ];
+  const data = rows.map(r => ([
+    r.id, r.status, r.hawb, r.invRefPo, r.iecPartNum, r.qty ?? '', r.bulks, r.carrier, r.bin, r.rcvdDate ?? '', r.shipOutDate ?? '', r.operatorName ?? ''
+  ]));
+
+  autoTable(doc, { head: [headers], body: data, startY: 30, styles: { fontSize: 8 } });
+
+  const fileName = `report_${fromIso.substring(0,10)}_to_${toIso.substring(0,10)}_${dateField}.pdf`;
+  doc.save(fileName);
 }

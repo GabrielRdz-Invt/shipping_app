@@ -14,11 +14,8 @@ export default function Shipments() {
     const [currentPage, setCurrentPage] = useState(1);  // página actual (1-based)
     const [pageSize, setPageSize] = useState(5);       // filas por página
 
-    // Cargar todos al montar
-    useEffect(() => { (async () => { await loadAll(); })(); }, []);
-
-    function openModal() { setShowModal(true); }
-    function closeModal() { setShowModal(false); }
+    /* function openModal() { setShowModal(true); }
+    function closeModal() { setShowModal(false); } */
     
     const [deleteId, setDeleteId] = useState(null);
     const [deleting, setDeleting] = useState(false);
@@ -34,6 +31,8 @@ export default function Shipments() {
     const [showEdit, setShowEdit] = useState(false);
     const [editInitial, setEditInitial] = useState(null);
 
+    // Cargar todos al montar
+    useEffect(() => { (async () => { await loadAll(); })(); }, []);
 
     useEffect(() => {
         if (showModal) {
@@ -57,13 +56,13 @@ export default function Shipments() {
     }, [showModal]);
 
     useEffect(() => {
-    if (deleteId) {
-        document.body.classList.add("modal-open");
-        document.body.style.overflow = "hidden";
-        return () => {
-            document.body.classList.remove("modal-open");
-            document.body.style.overflow = "";
-      };
+        if (deleteId) {
+            document.body.classList.add("modal-open");
+            document.body.style.overflow = "hidden";
+            return () => {
+                document.body.classList.remove("modal-open");
+                document.body.style.overflow = "";
+        };
     }
     }, [deleteId]);
 
@@ -79,6 +78,26 @@ export default function Shipments() {
         }
     }, [showEdit]);
   
+    
+    function openModal() {
+        setShowModal(true);
+        // [CAMBIO] Al abrir modal de Scan In, solicitar al backend el próximo ID y prefill del formulario
+        (async () => {
+        try {
+            setError(undefined);
+            const { id } = await api.getNextId(); // nuevo endpoint GET /IepCrossingDockShipments/next-id
+            setEditInitial({ id });               // reutilizamos initialData para pasar el ID al ShipmentForm
+        } catch (e) {
+            setError(e.message ?? "No se pudo generar el ID");
+        }
+        })();
+    }
+    
+    function closeModal() {
+        setShowModal(false);
+        setEditInitial(null); // [CAMBIO] limpiar initialData al cerrar
+    }
+
     function openScanOutModal(id) {
         setScanOutId(id);
         // Prellenar con ahora (local) → formato "YYYY-MM-DDTHH:mm"
@@ -97,14 +116,17 @@ export default function Shipments() {
         setScanOutInput("");
     }
     
+    
     async function handleCreateFromModal(dto) {
         try {
+            setError(undefined);
             const created = await api.create(dto);
-            setRows(prev => [created, ...prev]);
+            setRows((prev) => [created, ...prev]);
             setCurrentPage(1);
             setShowModal(false);
+            setEditInitial(null);
         } catch (err) {
-            setError(err.message || 'Error creando el registro');
+            setError(err.message ?? "Error creando el registro");
         }
     }
 
@@ -153,7 +175,6 @@ export default function Shipments() {
             setLoading(false);
         }
     }
-
     
     // [UPDATE] Abrir modal de edición con prefill
     function openEditModal(row) {
@@ -191,6 +212,7 @@ export default function Shipments() {
         const dt = new Date(value);
         return isNaN(dt.getTime()) ? null : dt.toISOString();
     }
+
     async function confirmScanOut() {
         if (!scanOutId) return;
         const iso = toIsoFromLocalInput(scanOutInput);
@@ -216,7 +238,6 @@ export default function Shipments() {
         }
     }
 
-
     // Variables de paginacion
     const totalRows = rows.length;
     const totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
@@ -229,6 +250,7 @@ export default function Shipments() {
         const next = Math.min(Math.max(1, p), totalPages);
         setCurrentPage(next);
     }
+
     function prev() { goToPage(currentPage - 1); }
     function next() { goToPage(currentPage + 1); }
 
@@ -276,7 +298,7 @@ export default function Shipments() {
                         <button type="button" className="btn-close" onClick={closeModal} aria-label="Close"></button>
                     </div>
                     <div className="modal-body">
-                        <ShipmentForm onSubmit={handleCreateFromModal} />
+                        <ShipmentForm onSubmit={handleCreateFromModal} initialData={editInitial} />
                     </div>
                     <div className="modal-footer">
                         <button className="btn btn-secondary" onClick={closeModal}>Cancel</button>
@@ -418,10 +440,10 @@ export default function Shipments() {
             <h2 className="mt-3">Shipments</h2>
             {/* Toolbar */}
             <div className="d-flex flex-wrap gap-2 my-3 align-items-center">
-                <button className="btn btn-primary" onClick={loadAll}>Load all</button>
+                <button className="btn btn-primary" onClick={loadAll}><i class="bi bi-arrow-clockwise" /></button>
                 
                 <div className="d-flex gap-2">
-                    <button className="btn btn-success" onClick={openModal}>Scan In</button>
+                    <button className="btn btn-success" onClick={openModal}><i class="bi bi-box-arrow-in-right" /> Scan In</button>
                 </div>
 
                 <input className="form-control" style={{ maxWidth: 260 }} value={queryId} onChange={(e) => setQueryId(e.target.value)} placeholder="Search By ID" />
@@ -436,8 +458,8 @@ export default function Shipments() {
                         <option value={50}>50</option>
                         <option value={100}>100</option>
                     </select>
-                    </div>
                 </div>
+            </div>
 
                 {loading && <div className="alert alert-info">Loading...</div>}
                 {error   && <div className="alert alert-danger">{error}</div>}
@@ -483,11 +505,11 @@ export default function Shipments() {
                                     {/* <button className="btn btn-sm btn-outline-danger me-1" onClick={() => openDeleteModal(s.id)}>
                                         <i className="bi bi-trash" />
                                     </button> */}
-                                    {s.status == '1' || s.status != '2' ? ( <button className="btn btn-sm btn-outline-dark me-1" onClick={() => openScanOutModal(s.id)} title="Scan Out"><i className="bi bi-arrow-bar-right" /> Scan Out</button> ) 
+                                    {s.status == '1' || s.status != '2' ? ( <button className="btn btn-sm btn-outline-dark me-1" onClick={() => openScanOutModal(s.id)} title="Scan Out"><i className="bi bi-box-arrow-in-left" /> Scan Out</button> ) 
                                     : s.status == '2' ? (<span className="badge bg-primary align-self-center me-1"><i className="bi bi-check2-circle me-1"/> Out</span>) 
                                     : ( <span className="badge bg-warning me-1">Unknown</span> )}
                                     <button className="btn btn-sm btn-outline-info" title="Update" onClick={() => openEditModal(s)}>
-                                        <i className="bi bi-highlighter" />
+                                        <i className="bi bi-pencil" />
                                     </button>
                                 </td>
                             </tr>
