@@ -509,7 +509,7 @@ export default function Shipments() {
                                     : s.status == '2' ? (<span className="badge bg-primary align-self-center me-1"><i className="bi bi-check2-circle me-1"/> Out</span>) 
                                     : ( <span className="badge bg-warning me-1">Unknown</span> )}
                                     <button className="btn btn-sm btn-outline-info" title="Update" onClick={() => openEditModal(s)}>
-                                        <i className="bi bi-pencil" />
+                                        <i className="bi bi-pencil" /> Edit
                                     </button>
                                 </td>
                             </tr>
