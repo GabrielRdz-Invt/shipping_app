@@ -1,9 +1,15 @@
-import { Link } from "react-router-dom";
-import { useAuth } from "../auth/AuthContext";
+import { Link, useNavigate } from "react-router-dom";
 import logo from "../assets/img/logo.png";
+import { useAuth } from "../auth/AuthContext";
 
 export default function Navbar(){
     const { user, logout } = useAuth();
+    const navigate = useNavigate();
+    
+    const onLogout = () => {
+        logout();
+        navigate("/login");
+    };
 
     return(
         <nav className="navbar navbar-expand-lg bg-body-tertiary" data-bs-theme="dark">
@@ -26,22 +32,8 @@ export default function Navbar(){
                     <li className="nav-item">
                         <Link className="nav-link" to="/reports">Reports</Link>
                     </li>
-                    <li className="nav-item dropdown">
-                        <a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            {/* {user ? (
-                                <>
-                                {user}
-                                </>
-                            ) : (
-                                <Link className="btn btn-outline-light btn-sm" to="/login">
-                                Login
-                                </Link>
-                            )} */}
-                            {user}
-                        </a>
-                        <ul className="dropdown-menu">
-                            <li><button className="dropdown-item" onClick={logout}>Logout</button></li>
-                        </ul>
+                    <li className="nav-item">
+                        {user.badge}
                     </li>
                 </ul>
             </div>

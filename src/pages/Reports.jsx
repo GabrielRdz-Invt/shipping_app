@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import * as api from '../api/shipments';
 
-// [CAMBIO] Helper: convierte 'yyyy-MM-dd' (input type="date") a límites ISO del día.
-// Lanza Error si la fecha es inválida (para evitar null assertions de TypeScript).
 function toIsoBoundsOrThrow(dateStr) {
     const d = new Date(dateStr);
     if (isNaN(d.getTime())) {
@@ -20,20 +18,18 @@ export default function Reports() {
   const [fromDate, setFromDate] = useState('');      // yyyy-MM-dd
   const [toDate, setToDate] = useState('');          // yyyy-MM-dd
   const [dateField, setDateField] = useState('rcvd'); // 'rcvd' | 'shipout'
-  const [rows, setRows] = useState([]);              // resultados del reporte
+  const [rows, setRows] = useState([]);              // report results
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState();
 
-    // [CAMBIO] Generar reporte (JSON): valida fechas, construye ISO sin usar '!'
     async function handleGenerate() {
+        // console.debug('[Reports] Generating report with:', { fromDate, toDate, dateField });
         setError(undefined);
-        // NO limpiamos rows aquí; si falla, mostramos error y dejamos la data previa
         if (!fromDate || !toDate) {
             setError('Selecciona ambas fechas.');
             return;
         }
         let fromIso, toIso;
-        
         try {
             const { startIso } = toIsoBoundsOrThrow(fromDate);
             const { endIso }   = toIsoBoundsOrThrow(toDate);
@@ -43,11 +39,11 @@ export default function Reports() {
             setError('Fechas inválidas.');
             return;
         }
-        
+
         setLoading(true);
         try {
             const data = await api.getReport({ fromIso, toIso, dateField });
-            setRows(data);            // solo aquí reemplazamos
+            setRows(Array.isArray(data) ? data : []);
         } catch (e) {
             setError(e.message ?? 'Error inesperado');
         } finally {
@@ -55,8 +51,7 @@ export default function Reports() {
         }
     }
 
-
-  // [CAMBIO] Export CSV: llama endpoint server-side y descarga archivo
+  // [UPDATED] Export CSV
     async function handleExportCsv() {
         setError(undefined);
         if (!fromDate || !toDate) { setError('Selecciona ambas fechas.'); return; }
@@ -111,15 +106,15 @@ export default function Reports() {
             <div className="card-body">
                 <div className="row g-3 align-items-end">
                     <div className="col-sm-3">
-                        <label className="form-label">Date From</label>
-                        <input type="date" className="form-control" value={fromDate} onChange={(e)=>setFromDate(e.target.value)}/>
+                        <label className="form-label">Date From:</label>
+                        <input type="datetime-local" className="form-control" value={fromDate} onChange={(e)=>setFromDate(e.target.value)}/>
                     </div>
                     <div className="col-sm-3">
-                        <label className="form-label">Date To</label>
-                        <input type="date" className="form-control" value={toDate} onChange={(e)=>setToDate(e.target.value)} />
+                        <label className="form-label">Date To:</label>
+                        <input type="datetime-local" className="form-control" value={toDate} onChange={(e)=>setToDate(e.target.value)} />
                     </div>
                     <div className="col-sm-3">
-                        <label className="form-label">Search By</label>
+                        <label className="form-label">Search By:</label>
                         {/* [CAMBIO] Selección de campo de fecha: rcvd vs shipout */}
                         <select className="form-select" value={dateField} onChange={(e)=>setDateField(e.target.value)} >
                             <option value="rcvd">Scan In Date</option>
@@ -137,12 +132,12 @@ export default function Reports() {
 
         {/* Acciones de export */}
         <div className="d-flex justify-content-end mb-2">
-            <button className="btn btn-outline-success me-2" onClick={handleExportCsv}>
-                Export to CSV
+            <button className="btn btn-outline-success btn-sm me-2" onClick={handleExportCsv}>
+                <i className="bi bi-filetype-csv"/> Export to Excel
             </button>
-            <button className="btn btn-outline-danger" onClick={handleExportPdf}>
-                Export to PDF
-            </button>
+            {/* <button className="btn btn-outline-danger btn-sm" onClick={handleExportPdf}>
+                <i className="bi bi-filetype-pdf"/>  Export to PDF
+            </button> */}
         </div>
 
         {/* Mensajes */}

@@ -23,7 +23,6 @@ export async function create(body) {
   });
 
   if (res.status === 201) {
-    // El controlador devuelve el recurso creado (idealmente IepCrossingDockShipment)
     return res.json();
   }
   if (res.status === 409) {
@@ -78,7 +77,7 @@ export async function scanOut(id, shipOutDateIso, statusText = "2") {
     return res.json();
 }
 
-/** [UPDATE] PUT: actualiza un envío por ID (usa el DTO de edición) */
+/** [UPDATE] PUT: updates a shipment by id */
 export async function update(id, body) {
     const res = await fetch(`${BASE_URL}/IepCrossingDockShipments/${encodeURIComponent(id)}`, {
         method: 'PUT',
@@ -99,20 +98,27 @@ export async function getNextId() {
     return res.json(); // { id: '2026-26-12-001' }
 }
 
-// [CAMBIO] Obtener reporte en JSON
+// Get report data as json array
 export async function getReport({ fromIso, toIso, dateField = 'rcvd' }) {
-  const params = new URLSearchParams();
-  params.set('from', fromIso);
-  params.set('to', toIso);
-  params.set('dateField', dateField);
+    const params = new URLSearchParams();
+    params.set('from', fromIso);
+    params.set('to', toIso);
+    params.set('dateField', dateField);
 
-  const url = `${BASE_URL}/IepCrossingDockShipments/report?${params.toString()}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
+    const url = `${BASE_URL}/IepCrossingDockShipments/report?${params.toString()}`;
+    console.debug('[getReport] url:', url);
+    const res = await fetch(url);
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      throw new Error(text || `HTTP ${res.status}`);
+    }
+
+    const data = await res.json();
+    return Array.isArray(data) ? data : (data.items ?? []);
+
 }
 
-// [FIX] Descargar CSV sin usar new URL (soporta BASE_URL relativo o absoluto)
+// Download report as CSV
 export async function downloadReportCsv({ fromIso, toIso, dateField = 'rcvd' }) {
   const params = new URLSearchParams();
   params.set('from', fromIso);
@@ -132,8 +138,7 @@ export async function downloadReportCsv({ fromIso, toIso, dateField = 'rcvd' }) 
   URL.revokeObjectURL(link.href);
 }
 
-
-// [CAMBIO] Exportar PDF en cliente (jsPDF + autotable) — opcional
+// Exportar to PDF. Not being used.
 export async function exportReportPdfClient(rows, { fromIso, toIso, dateField = 'rcvd' }) {
   const { jsPDF } = await import('jspdf');
   const autoTable = (await import('jspdf-autotable')).default;

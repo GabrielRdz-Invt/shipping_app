@@ -362,7 +362,7 @@ export default function Shipments() {
                     </div>
                     <div className="modal-body">
                         <div className="mb-3">
-                            <label className="form-label">Fecha/Hora de salida</label>
+                            <label className="form-label">Scan Out DateTime:</label>
                             <input type="datetime-local" className="form-control" value={scanOutInput} onChange={(e) => setScanOutInput(e.target.value)}/>
                             {/* <div className="form-text">
                                 Confirma la hora de salida; se actualizarán STATUS=2 y ShipOutDate.
@@ -440,10 +440,10 @@ export default function Shipments() {
             <h2 className="mt-3">Shipments</h2>
             {/* Toolbar */}
             <div className="d-flex flex-wrap gap-2 my-3 align-items-center">
-                <button className="btn btn-primary" onClick={loadAll}><i class="bi bi-arrow-clockwise" /></button>
+                <button className="btn btn-primary" onClick={loadAll}><i className="bi bi-arrow-clockwise" /></button>
                 
                 <div className="d-flex gap-2">
-                    <button className="btn btn-success" onClick={openModal}><i class="bi bi-box-arrow-in-right" /> Scan In</button>
+                    <button className="btn btn-success" onClick={openModal}><i className="bi bi-box-arrow-in-right" /> Scan In</button>
                 </div>
 
                 <input className="form-control" style={{ maxWidth: 260 }} value={queryId} onChange={(e) => setQueryId(e.target.value)} placeholder="Search By ID" />
