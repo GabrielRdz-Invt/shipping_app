@@ -9,8 +9,9 @@ export default function Home(){
 
             <div className="btn-group btn-group-lg container-fluid">
                 <Link style={{ padding: "2em" }} className="btn btn-outline-primary" to="/shipments"><i className="i i-pencil" /><i className="bi bi-truck" /> Shipments</Link>
-                <Link href="#" style={{ padding: "2em" }} className="btn btn-outline-primary"><i className="i i-pencil" /><i className="bi bi-printer" /> Print Labels</Link>
+                <Link to={"/secondscan"} style={{ padding: "2em" }} className="btn btn-outline-primary"><i className="bi bi-upc-scan" /> Second Scan</Link>
                 <Link to={"/reports"} style={{ padding: "2em" }} className="btn btn-outline-primary"><i className="bi bi-file-earmark-bar-graph" /> Reports</Link>
+                <Link href="#" style={{ padding: "2em" }} className="btn btn-outline-primary"><i className="i i-pencil" /><i className="bi bi-printer" /> Print Labels</Link>
             </div>
         </div>
     )

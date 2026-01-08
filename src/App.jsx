@@ -4,6 +4,7 @@ import Home from './pages/Home';
 import Shipments from './pages/Shipments';
 import Reports from './pages/Reports';
 import Login from './pages/Login';
+import SecondScan from './pages/SecondScan';
 import ProtectedRoute from './auth/ProtectedRoute';
 import { useAuth } from './auth/AuthContext';
 
@@ -47,6 +48,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <Reports />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/secondscan"
+            element={
+              <ProtectedRoute>
+                <SecondScan />
               </ProtectedRoute>
             }
           />

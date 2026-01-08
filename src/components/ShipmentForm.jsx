@@ -28,6 +28,7 @@ export default function ShipmentForm({ onSubmit, initialData }) {
     carrier: '',
     hawb: '',
     invRefPo: '',
+    hpPartNum: '',
     iecPartNum: '',
     qty: '',
     bulks: '',
@@ -38,7 +39,6 @@ export default function ShipmentForm({ onSubmit, initialData }) {
     bin: '',
     remark: '',
     operator: '',
-    // hpPartNum: ''
   });
 
   /** [UPDATE] Prefill: carga los datos seleccionados en el formulario (solo si initialData existe) */
@@ -50,6 +50,7 @@ export default function ShipmentForm({ onSubmit, initialData }) {
             carrier: initialData.carrier ?? "",
             hawb: initialData.hawb ?? "",
             invRefPo: initialData.invRefPo ?? "",
+            hpPartNum: initialData.hpPartNum ?? "",
             iecPartNum: initialData.iecPartNum ?? "",
             qty: initialData.qty ?? "",
             bulks: initialData.bulks ?? "",
@@ -79,6 +80,7 @@ e.preventDefault();
         carrier: form.carrier || null,
         hawb: form.hawb || null,
         invRefPo: form.invRefPo || null,
+        hpPartNum: form.hpPartNum || null,
         iecPartNum: form.iecPartNum || null,
         qty: form.qty !== "" ? Number(form.qty) : null,
         bulks: form.bulks || null,
@@ -116,18 +118,22 @@ e.preventDefault();
         </div>
 
         <div className="col-sm-3">
+            <label className="form-label">HP Part Num</label>
+            <input className="form-control" name="hpPartNum" placeholder="HP Part Num" value={form.hpPartNum} onChange={handleChange} autoComplete="on" />
+        </div>
+        <div className="col-sm-3">
             <label className="form-label">IEC Part Num</label>
             <input className="form-control" name="iecPartNum" placeholder="IEC Part Num" value={form.iecPartNum} onChange={handleChange} autoComplete="on" />
         </div>
-        <div className="col-sm-3">
+        <div className="col-sm-2">
             <label className="form-label">Qty</label>
             <input className="form-control" type="number" name="qty" placeholder="Qty" value={form.qty} onChange={handleChange} min={1} />
         </div>
-        <div className="col-sm-3">
+        <div className="col-sm-2">
             <label className="form-label">Bulks</label>
             <input className="form-control" name="bulks" placeholder="Bulks" value={form.bulks} onChange={handleChange} autoComplete="on" min={1} />
         </div>
-        <div className="col-sm-3">
+        <div className="col-sm-2">
             <label className="form-label">Box/Plt</label>
             <input className="form-control" name="boxPlt" placeholder="Box/Plt" value={form.boxPlt} onChange={handleChange} autoComplete="on" />
         </div>
@@ -158,7 +164,7 @@ e.preventDefault();
             <input className="form-control" name="operator" placeholder="Operator" value={form.operator} onChange={handleChange} autoComplete="on" />
         </div>
 
-        <div className="col-12 mt-2">
+        <div className="col-12 mt-3">
             <button className="btn btn-success" type="submit">Guardar</button>
         </div>
     </form>

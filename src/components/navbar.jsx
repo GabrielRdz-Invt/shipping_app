@@ -30,10 +30,14 @@ export default function Navbar(){
                         <Link className="nav-link" to="/shipments">Shipments</Link>
                     </li>
                     <li className="nav-item">
+                        <Link className="nav-link" to="/SecondScan">Second Scan</Link>
+                    </li>
+                    <li className="nav-item">
                         <Link className="nav-link" to="/reports">Reports</Link>
                     </li>
                     <li className="nav-item">
-                        {user.badge}
+                        {/* <a className="nav-link" href="#">{user.badge}</a> */}
+                        { user.badge ? <span className="nav-link">{user.badge}</span> : null }
                     </li>
                 </ul>
             </div>
