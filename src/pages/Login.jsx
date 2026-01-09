@@ -3,11 +3,13 @@ import { useAuth } from '../auth/AuthContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import logo from "../assets/img/logo.png";
 
+const FORCE_LOGOUT_KEY = "FORCE_LOGOUT";
+
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from?.pathname ?? "/";
+  const from = location.state?.from?.pathname ?? "/home";
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -16,6 +18,7 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
+      localStorage.removeItem(FORCE_LOGOUT_KEY);
       await login();
       navigate(from, { replace: true });
     } catch (e) {

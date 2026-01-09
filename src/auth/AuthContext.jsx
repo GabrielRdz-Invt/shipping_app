@@ -3,10 +3,12 @@ import * as authApi from "../api/auth";
 
 const AuthContext = createContext(null);
 const STORAGE_KEY = "shipping_app_auth";
-
+const FORCE_LOGOUT_KEY = "FORCE_LOGOUT";
 
 function readStored() {
     try {
+        if (localStorage.getItem(FORCE_LOGOUT_KEY) === "1") return null;
+
         const raw = localStorage.getItem(STORAGE_KEY);
         if (!raw) return null;
         const { user, exp } = JSON.parse(raw);
@@ -15,7 +17,8 @@ function readStored() {
         return { user, exp };
     }
     catch
-    { 
+    {
+        localStorage.removeItem(STORAGE_KEY);
         return null;
     }
 }
@@ -27,13 +30,17 @@ export function AuthProvider({ children, sessionHours = 8 }) {
     });
 
     useEffect(() => {
-        if (!user) { localStorage.removeItem(STORAGE_KEY); return; }
+        if (!user || localStorage.getItem(FORCE_LOGOUT_KEY) === "1") {
+            localStorage.removeItem(STORAGE_KEY);
+            return;
+        }
         const exp = Date.now() + sessionHours * 60 * 60 * 1000;
         localStorage.setItem(STORAGE_KEY, JSON.stringify({ user, exp }));
     }, [user, sessionHours]);
 
-    // --- CAMBIO: login sin credenciales — consulta whoAmI() en la API externa ---
     async function login() {
+        if (user && localStorage.getItem(FORCE_LOGOUT_KEY) !== "1") return user;
+        localStorage.removeItem(FORCE_LOGOUT_KEY);
         const badge = await authApi.whoAmI();
         if (!badge) throw new Error("No se pudo obtener identidad (whoami)");
         setUser({ badge });
@@ -42,16 +49,24 @@ export function AuthProvider({ children, sessionHours = 8 }) {
 
     // --- CAMBIO: validar permiso y registrar acceso ---
     async function ensureAuthorized(program = "IEP-CDS", section = "shipments") {
+        if (localStorage.getItem(FORCE_LOGOUT_KEY) === "1") {
+            throw new Error("Forbidden (forced logout)");
+        }
+
         const badge = user?.badge ?? (await authApi.whoAmI());
+
         if (!badge) throw new Error("No user (whoami)");
-        const ok = await authApi.authorize(program);
-        if (!ok) throw new Error("Forbidden");
+        const allowed = await authApi.authorize(program);
+
+        if (!allowed) {
+            throw new Error(`Forbidden: program=${program}`);
+        }
         authApi.recordAccess({ badge, program, section }).catch(() => {});
         return { badge, program, section };
     }
 
     function logout() {
-        authApi.logoutExternal().catch(() => {});
+        localStorage.setItem(FORCE_LOGOUT_KEY, "1");
         setUser(null);
         localStorage.removeItem(STORAGE_KEY);
     }
@@ -66,16 +81,6 @@ export function useAuth() {
     return ctx;
 }
 
-
-async function ensureAuthorized(program = "IEP-CDS", section = "shipments") {
-    const badge = user?.badge ?? (await authApi.whoAmI());
-    if (!badge) throw new Error("No user (whoami)");
-    try {
-        const ok = await authApi.authorize(program);
-        if (!ok) throw new Error("Forbidden");      
-    } catch (e) {
-        console.warn("[ensureAuthorized] authorize failed, proceeding in dev:", e);
-    }
-    authApi.recordAccess({ badge, program, section }).catch(() => {});
-    return { badge, program, section };
+export function hasValidSession(user) {
+  return !!(user && user.badge);
 }

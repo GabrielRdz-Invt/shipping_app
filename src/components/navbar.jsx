@@ -1,14 +1,15 @@
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../assets/img/logo.png";
-import { useAuth } from "../auth/AuthContext";
+import { useAuth, hasValidSession } from "../auth/AuthContext";
 
 export default function Navbar(){
     const { user, logout } = useAuth();
     const navigate = useNavigate();
+    const isLogged = hasValidSession(user);
     
     const onLogout = () => {
         logout();
-        navigate("/login");
+        navigate("/login", { replace: true });
     };
 
     return(
@@ -35,9 +36,25 @@ export default function Navbar(){
                     <li className="nav-item">
                         <Link className="nav-link" to="/reports">Reports</Link>
                     </li>
-                    <li className="nav-item">
-                        {/* <a className="nav-link" href="#">{user.badge}</a> */}
-                        { user.badge ? <span className="nav-link">{user.badge}</span> : null }
+                    <li className="nav-item dropdown">
+                        <span className="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            {user?.badge ?? "Not Logged"}
+                        </span>
+                        <ul className="dropdown-menu dropdown-menu-end">
+                        {isLogged ? (
+                            <li>
+                                <button className="dropdown-item" onClick={onLogout}>
+                                    Logout
+                                </button>
+                            </li>
+                        ) : (
+                            <li>
+                                <Link className="dropdown-item" to="/login">
+                                    Login
+                                </Link>
+                            </li>
+                        )}
+                        </ul>
                     </li>
                 </ul>
             </div>
