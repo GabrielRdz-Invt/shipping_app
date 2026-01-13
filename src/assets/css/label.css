@@ -1,0 +1,19 @@
+.label-size { width: 4in; height: 6in; }
+
+@page { size: 4in 6in; margin: 0; }
+
+@media print {
+    html, body { margin: 0 !important; padding: 0 !important; }
+    body * { display: none !important; }
+    #printArea, #printArea * { display: block !important; }
+    #printArea { position: fixed; inset: 0; margin: 0; padding: 0; background: white; }
+    .print-label { page-break-after: always; }
+    .print-label:last-child { page-break-after: auto; }
+    .label-size {
+        width: 4in !important;
+        height: 6in !important;
+        margin: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+}

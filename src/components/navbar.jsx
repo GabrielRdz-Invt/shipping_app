@@ -36,6 +36,9 @@ export default function Navbar(){
                     <li className="nav-item">
                         <Link className="nav-link" to="/reports">Reports</Link>
                     </li>
+                    <li className="nav-item">
+                        <Link className="nav-link" to="/printlabels">Print Labels</Link>
+                    </li>
                     <li className="nav-item dropdown">
                         <span className="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             {user?.badge ?? "Not Logged"}

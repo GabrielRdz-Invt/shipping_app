@@ -8,6 +8,7 @@ import Shipments from './pages/Shipments';
 import Reports from './pages/Reports';
 import Login from './pages/Login';
 import SecondScan from './pages/SecondScan';
+import PrintLabels from './pages/PrintLabels';
 
 // auth
 import ProtectedRoute from './auth/ProtectedRoute';
@@ -50,6 +51,10 @@ export default function App() {
 
         <Route element={<ProtectedRoute program="IEP-CDS" section="reports" />}>
           <Route path="/reports" element={<Reports />} />
+        </Route>
+
+        <Route element={<ProtectedRoute program="IEP-CDS" section="printlabels" />}>
+          <Route path="/printlabels" element={<PrintLabels/>} />
         </Route>
 
         {/* Fallback */}
