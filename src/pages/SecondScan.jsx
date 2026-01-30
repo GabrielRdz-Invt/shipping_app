@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import * as api from "../api/secondscan";
 
 export default function SecondScan() {
     // states hooks for inputs
@@ -27,31 +28,24 @@ export default function SecondScan() {
     };
 
     // upload excel file
-    const handleUpload = async () => {
+    const handleUpload = async () => {       
         if (!file){
             setError("Please select a file to upload.");
             return;
         }
+
         setLoadingUpload(true);
         setError(null);
-        setResult(null);
-        try{
-            const form = new FormData();
-            form.append("file", file);
+        // setResult(null);
 
-            const res = await fetch(`/api/IepCrossingDockShipments/upload-file`, {
-                method: "POST",
-                body: form
-            });
-            if (!res.ok) throw Error(await res.text());
-            const data = await res.json();
-            setResult("Excel file uploaded successfully", "Success");
-        }
-        catch (e){
+        try{
+            const data = await api.uploadFile(file);
+            setResult({ result: "pass", message: "Excel file uploaded successfully" });
+            showToast("Excel file uploaded successfully", "Success");
+        } catch (e) {
             setError(e.message || "Error uploading file");
             showToast(e.message || "Error uploading file", "Error");
-        }
-        finally{
+        } finally{
             setLoadingUpload(false);
         }
     };
@@ -60,19 +54,18 @@ export default function SecondScan() {
         setLoadingValidate(true);
         setError(null);
         setResult(null);
-        try{
-            const res = await fetch(`/api/IepCrossingDockShipments/validate-bool`, {
-                method: "POST",
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ trackingNumber, hpPartNum })
-            });
-            if (!res.ok) throw Error(await res.text());
-            const data = await res.json();
+
+        try {
+            const data = await api.validatePair(trackingNumber, hpPartNum);
             setResult(data);
-            showToast(data.result === "pass" ? "Validation successful" : "Validation failed", data.result === "pass" ? "Success" : "Error");
-        }catch (error) {
-            setError(error.message || "Error during validation");
-        }finally{
+            showToast(
+                data.result === "pass" ? "Validation successful" : "Validation failed", 
+                data.result === "pass" ? "Success" : "Error"
+            );
+        } catch (e) {
+            setError(e.message || "Error during validation");
+            showToast(e.message || "Error during validation", "error");
+        } finally {
             setLoadingValidate(false);
         }
     };

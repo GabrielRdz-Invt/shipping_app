@@ -1,4 +1,5 @@
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:7054/api';
+// const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:7054/api'; // development environment
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://iep-app-n.iec.inventec:443/Warehouse_Api/api'; // production environment
 
 export async function getAll(){
     const res = await fetch(`${BASE_URL}/IepCrossingDockShipments`);

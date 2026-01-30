@@ -1,5 +1,5 @@
 // const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api';
-const AUTH_BASE = import.meta.env.VITE_AUTH_BASE_URL ?? "https://iep-app-n.iec.inventec";
+const AUTH_BASE = "https://iep-app-n.iec.inventec";
 
 export async function whoAmI() { 
     const res = await fetch(`${AUTH_BASE}/Base/Login/whoami`, {

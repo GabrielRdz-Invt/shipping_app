@@ -1,4 +1,3 @@
-// src/App.jsx
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Navbar from './components/navbar';
 
@@ -28,7 +27,6 @@ export default function App() {
   return (
     <>
       {!hideNavbar && <Navbar />}
-
       <Routes>
         {/* Public */}
         <Route path="/login" element={<Login />} />

@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import html2pdf from "html2pdf.js";
 import JsBarcode from "jsbarcode";
-import { jsPDF } from "jspdf";
 
 import '../assets/css/label.css';
 
@@ -9,8 +8,10 @@ export default function PrintLabels()
 {
     const [form, setForm] = useState({
         date    : "",
-        part : "",
+        part    : "",
+        serial  : "",
         coo     : "",
+        cp      : "",
         copies  : "1"
     });
 
@@ -37,68 +38,132 @@ export default function PrintLabels()
 
 
     const barcodeRef = useRef(null);
+    const containerRef = useRef(null);
 
-    useEffect(() => {  
-        const part = form.part?.trim();
-        if (barcodeRef.current) {
-            const ctx = barcodeRef.current.getContext("2d");
-            ctx?.clearRect(0, 0, barcodeRef.current.width, barcodeRef.current.height);
+    
+    useEffect(() => {
+        const container = containerRef.current || document.getElementById("labelContainer");
+        if (!container) return;
 
-            if (part) {
-                JsBarcode(barcodeRef.current, part, {
+        const canvases = container.querySelectorAll("canvas[data-bc]");
+        canvases.forEach((cv) => {
+            const key = cv.getAttribute("data-bc");
+            let value = "";
+            let labelPrefix = "";
+
+            switch (key) {
+                case "part":
+                    value = (form.part).trim();
+                    labelPrefix = "PART NUMBER: ";
+                break;
+
+                case "serial":
+                    value = (form.serial).trim();
+                    labelPrefix = "SERIAL NUMBER: ";
+                break;
+
+                case "coo":
+                    value = (form.coo).trim();
+                break;
+
+                case "cp":
+                    value = (form.cp).trim();
+                break;
+
+                default:
+                break;
+            }
+
+            const ctx = cv.getContext?.("2d");
+            if (ctx && cv.width && cv.height) ctx.clearRect(0, 0, cv.width, cv.height);
+            if (!value) return;
+
+            try {
+                JsBarcode(cv, value, {
                 format: "code128",
                 displayValue: true,
-                fontSize: 14,
+                text: labelPrefix ? `${labelPrefix}${value}` : undefined,
+                fontSize: 12,
                 height: 60,
                 margin: 0,
                 });
+            } catch (err) {
+                console.error("Error generando barcode:", err);
             }
-        }
+        });
+    }, [form.part, form.serial, form.coo, form.cp]);
 
-    }, [form.part]);
 
     
     const labelPreview = useMemo(() => {
-        const date = form.date ?? "";
-        const part = form.part ?? "";
-        const coo = form.coo ?? "";
-        const copiesText = form.copies ?? "1";
+        const wrapStyle = {
+        position: "relative",
+        width: "100%",
+        height: "100%",
+        fontFamily: "Arial, sans-serif",
+        };
+
+        const cellBase = {
+        position: "absolute",
+        width: "0in",
+        height: "0in",
+        transformOrigin: "top left",
+        };
+
+        const barcodeWidth = "2.2in";
+        const barcodeHeight = "0.65in";
+        const rot90 = {
+        display: "block",
+        width: barcodeWidth,
+        height: barcodeHeight,
+        transformOrigin: "top left",
+        transform: "rotate(90deg)",
+        };
 
         return (
-        <div id="labelContainer" className="label-size border p-3 bg-white">
-            <div className="d-flex justify-content-between align-items-start">
-                <h5 className="mb-3">FRU PVS Reprint</h5>
-                <div>
-                    <strong>Copies:</strong> {copiesText}
+        <div
+            id="labelContainer"
+            ref={containerRef}
+            className="label-size bg-white"
+            style={wrapStyle}
+            aria-label="Etiqueta 4x6 (layout 2x2 vertical)"
+        >
+            {/* Fila superior */}
+            {/* PART NUMBER */}
+            <div style={{ ...cellBase, left: "3.0in", top: "0.60in", transform: "translate(0in, 0in)", }} >
+                <div style={rot90}>
+                    <canvas data-bc="part" style={{ width: "100%", height: "100%" }} />
                 </div>
             </div>
 
-            <div style={{ fontSize: 14 }}>
-                <div className="mb-1">
-                    <strong>Date:</strong> {date || "(auto en Retrieve)"}
-                </div>
-                <div className="mb-1">
-                    <strong>Part Number (HP):</strong> {part || "(escanéalo/teclea)"}
-                </div>
-                <div className="mb-3">
-                    <strong>Country Of Origin:</strong> {coo || "(manual)"}
+            {/* SERIAL NUMBER */}
+            <div style={{ ...cellBase, left: "3.0in", top: "3.10in", transform: "translate(0in, 0in)", }} >
+                <div style={rot90}>
+                    <canvas data-bc="serial" style={{ width: "100%", height: "100%" }} />
                 </div>
             </div>
 
-            <hr />
-
-            <div className="mt-2">
-                <canvas ref={barcodeRef} />
+            {/* Fila inferior */}
+            {/* COO */}
+            <div style={{ ...cellBase, left: "1.50in", top: "0.70in", transform: "translate(0in, 0in)",}} >
+                <div style={{ ...rot90, width: "1.4in", height: "0.9in", }} >
+                    <canvas data-bc="coo" style={{ width: "100%", height: "100%" }} />
+                </div>
             </div>
 
-            <div className="mt-3">
-                <small className="text-muted">Prototype label preview (PDF)</small>
+            {/* CP */}
+            <div style={{ ...cellBase, left: "1.40in", top: "2.80in", transform: "translate(0in, 0in)", }} >
+                <div style={rot90}>
+                    <canvas data-bc="cp" style={{ width: "100%", height: "100%" }} />
+                    <br />
+                    <small style={{ fontSize: "60%", fontFamily: "Arial, sans-serif" }}>{form.date}</small>
+                </div>
             </div>
         </div>
         );
     }, [form]);
 
-    const buildPdfOptions = () => ({
+    /*const buildPdfOptions = () => ({
         margin: 0,
         filename: `label_${form.part || "sample"}.pdf`,
         image: { type: "jpeg", quality: 1.0 },
@@ -109,7 +174,7 @@ export default function PrintLabels()
     const getCopiesSafe = () => {
         const n = parseInt(form.copies, 10);
         return Number.isFinite(n) && n > 0 ? n : 1;
-    };
+    }; */
 
     const buildBarcodeDataUrl = (part) => {
         const v = (part || "").trim();
@@ -132,93 +197,111 @@ export default function PrintLabels()
         const img = new Image();
         img.src = src;
         try {
-            await img.decode(); // rápido si está en cache
+            await img.decode();
         } catch {
             await new Promise((resolve) => {
             img.onload = resolve;
-            img.onerror = resolve; // resolvemos también en error para no bloquear
+            img.onerror = resolve;
             });
         }
     };
 
-    /* const printPdfSinglePagePerCopy = async () => {
-        const node = document.getElementById("labelContainer");
-        if (!node) return;
-        
-        const options = buildPdfOptions();
-        const copies = getCopiesSafe();
 
-        for (let i = 1; i <= form.copies; i++){
-            await html2pdf().set(options).from(node).save(`label_${form.part || "sample"}_${i}.pdf`);
-        }
-    };
-
-    const printLabelsInSingleFile = async () => {
-        const node = document.getElementById("labelContainer");
-        if (!node) return;
-
-        const options = {
-            margin: 0,
-            filename: `labels_${form.part || "sample"}_x${form.copies}.pdf`,
-            image: { type: "jpeg", quality: 1.0 },
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: "in", format: [4, 6], orientation: "portrait" }
-        };
-
-        const worker = html2pdf().set(options).from(node).toPdf();
-        const pdf = await worker.get("pdf");
-        const canvas = await html2pdf().set({ html2canvas: { scale: 2 } }).from(node).toCanvas();
-        const img = canvas.toDataURL("image/jpeg", 1.0);
-
-        const copies = (() => {
-            const n = parseInt(form.copies ?? "1", 10);
-            return Number.isFinite(n) && n > 0 ? n : 1;
-        })();
-
-        for (let i = 1; i < copies; i++) {
-            pdf.addPage([4, 6], "portrait");
-            pdf.addImage(img, "JPEG", 0, 0, 4, 6);
-        }
-        pdf.save(options.filename);
-    }; */
 
     const printLabelContainerInline = async () => {
         const container = document.getElementById("labelContainer");
-
         if (!container) return;
-        const copies = getCopiesSafe();
-        const barcodeURL = buildBarcodeDataUrl(form.part);
 
-        await preloadImage(barcodeURL);
         const printArea = document.createElement("div");
         printArea.id = "printArea";
 
-        for (let i = 0; i < copies; i++) {
-            const clone = container.cloneNode(true);
-            const cloneCanvas = clone.querySelector("canvas");
-            const img = document.createElement("img");
-            img.src = barcodeURL || "";
-            img.alt = "barcode";
-            img.style.width = "100%";
+        const clone = container.cloneNode(true);
 
-            if (cloneCanvas) {
-                cloneCanvas.replaceWith(img);
-            } else {
-                const hr = clone.querySelector("hr");
-                (hr?.parentNode || clone).appendChild(img);
-            }
-            clone.classList.add("print-label");
-            clone.style.border = "none";
-            clone.style.boxShadow = "none";
-            const note = clone.querySelector("small.text-muted");
+        const canvases = clone.querySelectorAll("canvas[data-bc]");
+        for (const cv of canvases) {
+        const key = cv.getAttribute("data-bc");
+        let value = "";
+        let labelPrefix = "";
 
-            if (note) note.remove();
-            printArea.appendChild(clone);
+        switch (key) {
+            case "part":
+                value = (form.part || "").trim();
+                labelPrefix = "PART NUMBER: ";
+            break;
+
+            case "serial":
+                value = (form.serial || "").trim();
+                labelPrefix = "SERIAL NUMBER: ";
+            break;
+
+            case "coo":
+                value = (form.coo || "").trim();
+            break;
+
+            case "cp":
+                value = (form.cp || "").trim();
+            break;
+
+            default:
+            break;
         }
+
+        if (!value) {
+            cv.remove();
+            continue;
+        }
+
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        try {
+            JsBarcode(svg, value, {
+                format: "code128",
+                displayValue: true,
+                text: labelPrefix ? `${labelPrefix}${value}` : undefined,
+                fontSize: 12,
+                height: 60,
+                margin: 0,
+            });
+
+            const serializer = new XMLSerializer();
+            const svgString = serializer.serializeToString(svg);
+            const src =
+            "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgString);
+
+            const img = document.createElement("img");
+            img.src = src;
+            img.alt = key || "barcode";
+            // CHANGE: respetar el tamaño del canvas; el wrapper rotado lo posiciona
+            img.style.width = cv.style.width || "100%";
+            img.style.height = cv.style.height || "100%";
+
+            try {
+                await img.decode();
+            } catch {
+                await new Promise((resolve) => {
+                    img.onload = resolve;
+                    img.onerror = resolve;
+                });
+            }
+
+            cv.replaceWith(img);
+        } catch (err) {
+            console.error("Error generando barcode para impresión:", err);
+        }
+        }
+
+        clone.classList.add("print-label");
+        clone.style.border = "none";
+        clone.style.boxShadow = "none";
+
+        printArea.appendChild(clone);
         document.body.appendChild(printArea);
+
         await new Promise((r) => requestAnimationFrame(() => r()));
+
         const cleanup = () => {
-            try { printArea.remove(); } catch {}
+            try {
+                printArea.remove();
+            } catch {}
             window.removeEventListener("afterprint", cleanup);
         };
         window.addEventListener("afterprint", cleanup);
@@ -239,16 +322,20 @@ export default function PrintLabels()
                                 <input id="date" type="text" className="form-control" value={form.date ?? ""} onChange={onChange("date")} disabled/>
                         </div>
                         <div className="form-group mb-3">
-                            <label htmlFor="">Part Number (HP): </label>
+                            <label htmlFor="serial">Part Number (HP): </label>
                             <input id="part" type="text" className="form-control" value={form.part ?? ""} onChange={onChange("part")} placeholder="Ej. P52068-001"/>
+                        </div>
+                        <div className="form-group mb-3">
+                            <label htmlFor="">Serial Number:</label>
+                            <input id="serial" type="text" className="form-control" value={form.serial ?? ""} onChange={onChange("serial")} placeholder="Ej. PZXVTOARHSDBF" />
                         </div>
                         <div className="form-group mb-3">
                             <label htmlFor="">Country Of Origin:</label>
                             <input id="coo" type="text" className="form-control" value={form.coo ?? ""} onChange={onChange("coo")} placeholder="CN"/>
                         </div>
                         <div className="form-group mb-3">
-                            <label htmlFor="">Total Labels:</label>
-                            <input id="copies" type="number" min={1} className="form-control" value={form.copies ?? "1"} onChange={onChange("copies")} placeholder="1"/>
+                            <label htmlFor="">CP:</label>
+                            <input id="cp" type="text" className="form-control" value={form.cp ?? ""} onChange={onChange("cp")} placeholder="Código CP" />
                         </div>
                         <div className="form-group mb-3">
                             <div className="row">
@@ -265,10 +352,8 @@ export default function PrintLabels()
                 </div>
 
                 <div className="col-md-4 mt-4">
-                    {/* <div className="card-body"> */}
-                        <h5>Preview</h5>
-                        {labelPreview}
-                    {/* </div> */}
+                    <h5>Preview</h5>
+                    {labelPreview}
                 </div>
             </div>
         </div>

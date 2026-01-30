@@ -165,7 +165,7 @@ e.preventDefault();
         </div>
 
         <div className="col-12 mt-3">
-            <button className="btn btn-success" type="submit">Guardar</button>
+            <button className="btn btn-success" type="submit">Save</button>
         </div>
     </form>
   );
