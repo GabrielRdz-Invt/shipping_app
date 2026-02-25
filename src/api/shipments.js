@@ -142,7 +142,7 @@ export async function downloadReportCsv({ fromIso, toIso, dateField = 'rcvd' }) 
 // Exportar to PDF. Not being used.
 export async function exportReportPdfClient(rows, { fromIso, toIso, dateField = 'rcvd' }) {
   const { jsPDF } = await import('jspdf');
-  const autoTable = (await import('jspdf-autotable')).default;
+  // const autoTable = (await import('jspdf-autotable')).default;
   const doc = new jsPDF();
 
   doc.setFontSize(12);
@@ -156,7 +156,7 @@ export async function exportReportPdfClient(rows, { fromIso, toIso, dateField = 
     r.id, r.status, r.hawb, r.invRefPo, r.iecPartNum, r.qty ?? '', r.bulks, r.carrier, r.bin, r.rcvdDate ?? '', r.shipOutDate ?? '', r.operatorName ?? ''
   ]));
 
-  autoTable(doc, { head: [headers], body: data, startY: 30, styles: { fontSize: 8 } });
+  // autoTable(doc, { head: [headers], body: data, startY: 30, styles: { fontSize: 8 } });
 
   const fileName = `report_${fromIso.substring(0,10)}_to_${toIso.substring(0,10)}_${dateField}.pdf`;
   doc.save(fileName);

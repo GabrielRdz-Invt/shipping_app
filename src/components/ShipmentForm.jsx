@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 
 /** [UPDATE] Convierte ISO → string para <input type="datetime-local"> */
@@ -23,28 +22,27 @@ function toISOFromLocalInput(value) {
 }
 
 export default function ShipmentForm({ onSubmit, initialData }) {
-  const [form, setForm] = useState({
-    id: '',
-    carrier: '',
-    hawb: '',
-    invRefPo: '',
-    hpPartNum: '',
-    iecPartNum: '',
-    qty: '',
-    bulks: '',
-    boxPlt: '',
-    rcvdDate: '',        // datetime-local
-    weight: '',
-    shipper: '',
-    bin: '',
-    remark: '',
-    operator: '',
-  });
+    const [form, setForm] = useState({
+        id: '',
+        carrier: '',
+        hawb: '',
+        invRefPo: '',
+        hpPartNum: '',
+        iecPartNum: '',
+        qty: '',
+        bulks: '',
+        boxPlt: '',
+        rcvdDate: '',        // datetime-local
+        weight: '',
+        shipper: '',
+        bin: '',
+        remark: '',
+        operator: '',
+        status: '',
+    });
 
-  /** [UPDATE] Prefill: carga los datos seleccionados en el formulario (solo si initialData existe) */
     useEffect(() => {
         if (!initialData) return;
-        // [CAMBIO] Prefill del ID (y resto de campos si existen) cuando recibimos initialData
         setForm({
             id: initialData.id ?? "",
             carrier: initialData.carrier ?? "",
@@ -61,20 +59,19 @@ export default function ShipmentForm({ onSubmit, initialData }) {
             bin: initialData.bin ?? "",
             remark: initialData.remark ?? "",
             operator: initialData.operator ?? "",
+            status: initialData.status ?? "",
         });
     }, [initialData]);
 
 
   function handleChange(e) {
     const { name, value } = e.target;
+    // console.log(`[handleChange] ${name}:`, value);
     setForm(prev => ({ ...prev, [name]: value ?? '' }));
   }
 
-  /** [UPDATE] Construye el DTO y dispara onSubmit (PUT/POST en el padre) */
   function handleSubmit(e) {
-    
-e.preventDefault();
-    // [CAMBIO] Permitimos enviar dto sin id para que el backend lo genere si es necesario
+    e.preventDefault();
     const dto = {
         id: form.id.trim(),
         carrier: form.carrier || null,
@@ -91,6 +88,7 @@ e.preventDefault();
         bin: form.bin || null,
         remark: form.remark || null,
         operator: form.operator || null,
+        status : form.status || null,
     };
     onSubmit(dto);
   }
@@ -100,72 +98,84 @@ e.preventDefault();
   return (
     <form onSubmit={handleSubmit} className="row g-2">
         <div className="col-md-3">
-            <label className="form-label">ID</label>
+            <label className="form-label">ID:</label>
             <input type="text" name="id" className="form-control" value={form.id} onChange={handleChange} readOnly={!isEdit} required={isEdit} disabled />
         </div>
 
         <div className="col-sm-3">
-            <label className="form-label">Carrier</label>
+            <label className="form-label">Carrier:</label>
             <input className="form-control" name="carrier" placeholder="Carrier" value={form.carrier} onChange={handleChange} autoComplete="on" />
         </div>
         <div className="col-sm-3">
-            <label className="form-label">HAWB</label>
+            <label className="form-label">HAWB:</label>
             <input className="form-control" name="hawb" placeholder="HAWB" value={form.hawb} onChange={handleChange} autoComplete="on" />
         </div>
         <div className="col-sm-3">
-            <label className="form-label">Inv/Ref/PO</label>
+            <label className="form-label">Inv/Ref/PO:</label>
             <input className="form-control" name="invRefPo" placeholder="Inv/Ref/PO" value={form.invRefPo} onChange={handleChange} autoComplete="on" />
         </div>
 
         <div className="col-sm-3">
-            <label className="form-label">HP Part Num</label>
+            <label className="form-label">HP Part Num:</label>
             <input className="form-control" name="hpPartNum" placeholder="HP Part Num" value={form.hpPartNum} onChange={handleChange} autoComplete="on" />
         </div>
         <div className="col-sm-3">
-            <label className="form-label">IEC Part Num</label>
+            <label className="form-label">IEC Part Num:</label>
             <input className="form-control" name="iecPartNum" placeholder="IEC Part Num" value={form.iecPartNum} onChange={handleChange} autoComplete="on" />
         </div>
         <div className="col-sm-2">
-            <label className="form-label">Qty</label>
+            <label className="form-label">Qty:</label>
             <input className="form-control" type="number" name="qty" placeholder="Qty" value={form.qty} onChange={handleChange} min={1} />
         </div>
         <div className="col-sm-2">
-            <label className="form-label">Bulks</label>
+            <label className="form-label">Bulks:</label>
             <input className="form-control" name="bulks" placeholder="Bulks" value={form.bulks} onChange={handleChange} autoComplete="on" min={1} />
         </div>
         <div className="col-sm-2">
-            <label className="form-label">Box/Plt</label>
+            <label className="form-label">Box/Plt:</label>
             <input className="form-control" name="boxPlt" placeholder="Box/Plt" value={form.boxPlt} onChange={handleChange} autoComplete="on" />
         </div>
 
         <div className="col-sm-4">
-            <label className="form-label">Rcv Date</label>
+            <label className="form-label">Rcv Date:</label>
             <input className="form-control" type="datetime-local" name="rcvdDate" placeholder="Rcv Date" value={form.rcvdDate} onChange={handleChange} />
         </div>
         <div className="col-sm-4">
-            <label className="form-label">Weight</label>
+            <label className="form-label">Weight:</label>
             <input className="form-control" name="weight" placeholder="Weight" value={form.weight} onChange={handleChange} autoComplete="on" />
         </div>
         <div className="col-sm-4">
-            <label className="form-label">Shipper</label>
+            <label className="form-label">Shipper:</label>
             <input className="form-control" name="shipper" placeholder="Shipper" value={form.shipper} onChange={handleChange} autoComplete="on" />
         </div>
 
         <div className="col-sm-4">
-            <label className="form-label">Bin</label>
+            <label className="form-label">Bin:</label>
             <input className="form-control" name="bin" placeholder="Bin" value={form.bin} onChange={handleChange} autoComplete="on" />
         </div>
         <div className="col-sm-4">
-            <label className="form-label">Remark</label>
+            <label className="form-label">Remark:</label>
             <input className="form-control" name="remark" placeholder="Remark" value={form.remark} onChange={handleChange} autoComplete="on" />
         </div>
         <div className="col-sm-4">
-            <label className="form-label">Operator</label>
+            <label className="form-label">Operator:</label>
             <input className="form-control" name="operator" placeholder="Operator" value={form.operator} onChange={handleChange} autoComplete="on" />
         </div>
 
+        {form.status === "2" || form.status != "" ? (<>
+            <div className="col-sm-4">
+                <label className="form-label">Reverse Status: </label>
+                <select className="form-select" name="status" value={form.status} onChange={handleChange}>
+                    <option value="1">Scanned In</option>
+                    <option value="2">Scanned Out</option>
+                </select>
+            </div>
+            <small className="text-muted mb-2" style={{fontSize:"80%"}}><i className="bi bi-info-circle me-1" />If you wish to set shipment as Out, please use the <b><i className="bi bi-box-arrow-in-left" /> Scan Out</b> button on the main table.</small>
+            </>
+        ) : null}
+
         <div className="col-12 mt-3">
-            <button className="btn btn-success" type="submit">Save</button>
+            <button className="btn btn-success" type="submit"><i className="bi bi-save me-1" /> Save Shipment</button>
         </div>
     </form>
   );

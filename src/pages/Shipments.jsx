@@ -12,7 +12,7 @@ export default function Shipments() {
 
     // Estados de paginación
     const [currentPage, setCurrentPage] = useState(1);  // página actual (1-based)
-    const [pageSize, setPageSize] = useState(5);       // filas por página
+    const [pageSize, setPageSize] = useState(10);       // filas por página
 
     /* function openModal() { setShowModal(true); }
     function closeModal() { setShowModal(false); } */
@@ -294,7 +294,7 @@ export default function Shipments() {
             <div className="modal-dialog modal-lg">
                 <div className="modal-content">
                     <div className="modal-header">
-                        <h5 className="modal-title">Scan In</h5>
+                        <h5 className="modal-title"><i className="bi bi-plus-circle me-1" />  &nbsp;Scan In</h5>
                         <button type="button" className="btn-close" onClick={closeModal} aria-label="Close"></button>
                     </div>
                     <div className="modal-body">
@@ -412,7 +412,7 @@ export default function Shipments() {
         <div className="modal-dialog modal-lg">
             <div className="modal-content">
             <div className="modal-header">
-                <h5 className="modal-title">Editar envío</h5>
+                <h5 className="modal-title"><i className="bi bi-truck" /> &nbsp;Edit Shipment</h5>
                 <button type="button" className="btn-close" onClick={closeEditModal} aria-label="Close"></button>
             </div>
             <div className="modal-body">
@@ -437,7 +437,7 @@ export default function Shipments() {
     return (
         <>
         <div className="container my-4">
-            <h2 className="mt-3">Shipments</h2>
+            <h2 className="mt-3 mb-3"><i className="bi bi-truck me-2" /> Shipments</h2>
             {/* Toolbar */}
             <div className="d-flex flex-wrap gap-2 my-3 align-items-center">
                 <button className="btn btn-primary" onClick={loadAll}><i className="bi bi-arrow-clockwise" /></button>
@@ -467,7 +467,7 @@ export default function Shipments() {
                 
                 {/* Tabla */}
                 <div className="table-responsive">
-                    <table className="table table-striped table-hover">
+                    <table className="table table-striped table-hover" style={{fontSize:"85%"}}>
                         <thead className="table-dark">
                             <tr>
                                 <th>Status</th>
@@ -505,10 +505,10 @@ export default function Shipments() {
                                     {/* <button className="btn btn-sm btn-outline-danger me-1" onClick={() => openDeleteModal(s.id)}>
                                         <i className="bi bi-trash" />
                                     </button> */}
-                                    {s.status == '1' || s.status != '2' ? ( <button className="btn btn-sm btn-outline-dark me-1" onClick={() => openScanOutModal(s.id)} title="Scan Out"><i className="bi bi-box-arrow-in-left" /> Scan Out</button> ) 
+                                    {s.status == '1' || s.status != '2' ? ( <button className="btn btn-outline-dark btn-sm me-1" onClick={() => openScanOutModal(s.id)} title="Scan Out"><i className="bi bi-box-arrow-in-left" /> Scan Out</button> ) 
                                     : s.status == '2' ? (<span className="badge bg-primary align-self-center me-1"><i className="bi bi-check2-circle me-1"/> Out</span>) 
                                     : ( <span className="badge bg-warning me-1">Unknown</span> )}
-                                    <button className="btn btn-sm btn-outline-info" title="Update" onClick={() => openEditModal(s)}>
+                                    <button className="btn btn-outline-info btn-sm" title="Update" onClick={() => openEditModal(s)}>
                                         <i className="bi bi-pencil" /> Edit
                                     </button>
                                 </td>

@@ -312,7 +312,7 @@ export default function PrintLabels()
     return(
         <>
         <div className="container mt-2">
-            <h3>FRU PVS Reprint Function</h3>
+            <h3 className="mt-3 mb-3"><i className="bi bi-printer me-2" />FRU PVS Reprint Function</h3>
 
             <div className="row">
                 <div className="col-md-8 card mt-4">
@@ -323,19 +323,19 @@ export default function PrintLabels()
                         </div>
                         <div className="form-group mb-3">
                             <label htmlFor="serial">Part Number (HP): </label>
-                            <input id="part" type="text" className="form-control" value={form.part ?? ""} onChange={onChange("part")} placeholder="Ej. P52068-001"/>
+                            <input id="part" type="text" className="form-control" value={form.part ?? ""} onChange={onChange("part")} placeholder="Example: P52068-001"/>
                         </div>
                         <div className="form-group mb-3">
                             <label htmlFor="">Serial Number:</label>
-                            <input id="serial" type="text" className="form-control" value={form.serial ?? ""} onChange={onChange("serial")} placeholder="Ej. PZXVTOARHSDBF" />
+                            <input id="serial" type="text" className="form-control" value={form.serial ?? ""} onChange={onChange("serial")} placeholder="Example: PZXVTOARHSDBF" />
                         </div>
                         <div className="form-group mb-3">
                             <label htmlFor="">Country Of Origin:</label>
                             <input id="coo" type="text" className="form-control" value={form.coo ?? ""} onChange={onChange("coo")} placeholder="CN"/>
                         </div>
                         <div className="form-group mb-3">
-                            <label htmlFor="">CP:</label>
-                            <input id="cp" type="text" className="form-control" value={form.cp ?? ""} onChange={onChange("cp")} placeholder="Código CP" />
+                            <label htmlFor="">CT:</label>
+                            <input id="cp" type="text" className="form-control" value={form.cp ?? ""} onChange={onChange("cp")} placeholder="CT Code" />
                         </div>
                         <div className="form-group mb-3">
                             <div className="row">

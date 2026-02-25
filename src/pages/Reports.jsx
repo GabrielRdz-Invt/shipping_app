@@ -100,7 +100,7 @@ export default function Reports() {
 
     return (
     <div className="container py-3">
-    <h3 className="mb-3">Reports Page</h3>
+    <h3 className="mb-3 mt-3"><i className="bi bi-file-earmark-bar-graph me-2" /> Reports Page</h3>
         {/* Filtros */}
         <div className="card mb-3">
             <div className="card-body">
@@ -176,17 +176,17 @@ export default function Reports() {
                             {rows.map((r) => (
                                 <tr key={r.id}>
                                 <td>{r.id}</td>
-                                <td>{r.status}</td>
+                                <td>{(r.status === '1' ? "In" : "Out")}</td>
                                 <td>{r.hawb}</td>
                                 <td>{r.invRefPo}</td>
-                                <td>{r.iecPartNum}</td>
+                                <td>{r.iecPartNum ?? <><small className="text-muted"><i>empty</i></small></>}</td>
                                 <td>{r.qty ?? ''}</td>
                                 <td>{r.bulks}</td>
                                 <td>{r.carrier}</td>
                                 <td>{r.bin}</td>
-                                <td>{r.rcvdDate ?? ''}</td>
-                                <td>{r.shipOutDate ?? ''}</td>
-                                <td>{r.operatorName ?? ''}</td>
+                                <td>{r.rcvdDate ?? <><small className="text-muted"><i>Not scanned in date</i></small></>}</td>
+                                <td>{r.shipOutDate ?? <><small className="text-muted"><i>No scanned out date</i></small></>}</td>
+                                <td>{r.operatorName ?? <><small className="text-muted"><i>No operator</i></small></>}</td>
                                 </tr>
                             ))}
                             </tbody>
