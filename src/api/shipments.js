@@ -100,7 +100,7 @@ export async function getNextId() {
 }
 
 // Get report data as json array
-export async function getReport({ fromIso, toIso, dateField = 'rcvd' }) {
+export async function getReport({ fromIso, toIso, dateField }) {
     const params = new URLSearchParams();
     params.set('from', fromIso);
     params.set('to', toIso);
@@ -120,7 +120,7 @@ export async function getReport({ fromIso, toIso, dateField = 'rcvd' }) {
 }
 
 // Download report as CSV
-export async function downloadReportCsv({ fromIso, toIso, dateField = 'rcvd' }) {
+export async function downloadReportCsv({ fromIso, toIso, dateField }) {
   const params = new URLSearchParams();
   params.set('from', fromIso);
   params.set('to', toIso);
