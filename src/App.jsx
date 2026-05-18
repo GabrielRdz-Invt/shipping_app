@@ -7,6 +7,9 @@ import Shipments from './pages/Shipments';
 import Reports from './pages/Reports';
 import Login from './pages/Login';
 import SecondScan from './pages/SecondScan';
+import ScanIn from './pages/ScanIn';
+import ScanOutShipments from './pages/ScanOutShipments';
+import ScanOutDetails from './pages/ScanOutDetails';
 import PrintLabels from './pages/PrintLabels';
 
 // auth
@@ -25,39 +28,51 @@ export default function App() {
   const hideNavbar = location.pathname === '/login';
 
   return (
-    <>
-      {!hideNavbar && <Navbar />}
-      <Routes>
-        {/* Public */}
-        <Route path="/login" element={<Login />} />
+	<>
+	  {!hideNavbar && <Navbar />}
+	  <Routes>
+		{/* Public */}
+		<Route path="/login" element={<Login />} />
 
-        {/* Index */}
-        <Route path="/" element={<IndexRedirect />} />
+		{/* Index */}
+		<Route path="/" element={<IndexRedirect />} />
 
-        {/* Protected */}
-        <Route element={<ProtectedRoute program="IEP-CDS" section="home" />}>
-          <Route path="/home" element={<Home />} />
-        </Route>
+		{/* Protected */}
+		<Route element={<ProtectedRoute program="IEP-CDS" section="home" />}>
+			<Route path="/home" element={<Home />} />
+		</Route>
 
-        <Route element={<ProtectedRoute program="IEP-CDS" section="shipments" />}>
-          <Route path="/shipments" element={<Shipments />} />
-        </Route>
+		<Route element={<ProtectedRoute program="IEP-CDS" section="shipments" />}>
+			<Route path="/shipments" element={<Shipments />} />
+		</Route>
 
-        <Route element={<ProtectedRoute program="IEP-CDS" section="secondscan" />}>
-          <Route path="/secondscan" element={<SecondScan />} />
-        </Route>
+		<Route element={<ProtectedRoute program="IEP-CDS" section="scanin" />}>
+			<Route path="/scanin" element={<ScanIn />} />
+		</Route>
 
-        <Route element={<ProtectedRoute program="IEP-CDS" section="reports" />}>
-          <Route path="/reports" element={<Reports />} />
-        </Route>
+		<Route element={<ProtectedRoute program="IEP-CDS" section="scanoutshipments" />}>
+			<Route path="/scanoutshipments" element={<ScanOutShipments />} />
+		</Route>
+		
+		<Route element={<ProtectedRoute program="IEP-CDS" section="scanoutdetails" />}>
+			<Route path="/scanoutdetails/:id_scan" element={<ScanOutDetails />} />
+		</Route>
 
-        <Route element={<ProtectedRoute program="IEP-CDS" section="printlabels" />}>
-          <Route path="/printlabels" element={<PrintLabels/>} />
-        </Route>
+		<Route element={<ProtectedRoute program="IEP-CDS" section="secondscan" />}>
+			<Route path="/secondscan" element={<SecondScan />} />
+		</Route>
 
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </>
+		<Route element={<ProtectedRoute program="IEP-CDS" section="reports" />}>
+			<Route path="/reports" element={<Reports />} />
+		</Route>
+
+		<Route element={<ProtectedRoute program="IEP-CDS" section="printlabels" />}>
+			<Route path="/printlabels" element={<PrintLabels/>} />
+		</Route>
+
+			{/* Fallback */}
+			<Route path="*" element={<Navigate to="/" replace />} />
+	  </Routes>
+	</>
   );
 }
