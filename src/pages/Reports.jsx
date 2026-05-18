@@ -23,7 +23,7 @@ export default function Reports() {
   const [error, setError] = useState();
 
     async function handleGenerate() {
-        // console.debug('[Reports] Generating report with:', { fromDate, toDate, dateField });
+        console.debug('[Reports] Generating report with:', { fromDate, toDate, dateField });
         setError(undefined);
         if (!fromDate || !toDate) {
             setError('Selecciona ambas fechas.');
@@ -163,6 +163,7 @@ export default function Reports() {
                                 <th>HAWB</th>
                                 <th>INV Ref PO</th>
                                 <th>IEC Part Num</th>
+                                <th>HP Part Num</th>
                                 <th>Qty</th>
                                 <th>Bulks</th>
                                 <th>Carrier</th>
@@ -180,6 +181,7 @@ export default function Reports() {
                                 <td>{r.hawb}</td>
                                 <td>{r.invRefPo}</td>
                                 <td>{r.iecPartNum ?? <><small className="text-muted"><i>empty</i></small></>}</td>
+                                <td>{r.hpPartNum ?? <><small className="text-muted"><i>empty</i></small></>}</td>
                                 <td>{r.qty ?? ''}</td>
                                 <td>{r.bulks}</td>
                                 <td>{r.carrier}</td>
