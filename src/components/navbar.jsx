@@ -31,13 +31,21 @@ export default function Navbar(){
                             <Link className="nav-link" to="/shipments">Shipments</Link>
                         </li>
                         <li className="nav-item mx-2">
-                            <Link className="nav-link" to="/SecondScan">Second Scan</Link>
-                        </li>
-                        <li className="nav-item mx-2">
                             <Link className="nav-link" to="/reports">Reports</Link>
                         </li>
                         <li className="nav-item mx-2">
                             <Link className="nav-link" to="/printlabels">Print Labels</Link>
+                        </li>
+                        <li className="nav-item dropdown mx-2">
+                            <span className="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Scanning
+                            </span>
+                            <ul className="dropdown-menu">
+                                <li><Link className="dropdown-item" to="/scanin">Scan In</Link></li>
+                                <li><Link className="dropdown-item" to="/scanoutshipments">Scan Out Shipments</Link></li>
+                                <li><hr className="dropdown-divider" /></li>
+                                <li><Link className="dropdown-item" to="/SecondScan">Second Scan</Link></li>
+                            </ul>
                         </li>
                         <li className="nav-item dropdown">
                             <span className="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">

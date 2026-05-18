@@ -153,7 +153,7 @@ export async function exportReportPdfClient(rows, { fromIso, toIso, dateField = 
     'ID','Status','HAWB','INV Ref PO','IEC Part Num','Qty','Bulks','Carrier','Bin','RcvdDate','ShipOutDate','Operator'
   ];
   const data = rows.map(r => ([
-    r.id, r.status, r.hawb, r.invRefPo, r.iecPartNum, r.qty ?? '', r.bulks, r.carrier, r.bin, r.rcvdDate ?? '', r.shipOutDate ?? '', r.operatorName ?? ''
+    r.id, r.status, `${r.hawb}`, r.invRefPo, r.iecPartNum, r.qty ?? '', r.bulks, r.carrier, r.bin, r.rcvdDate ?? '', r.shipOutDate ?? '', r.operatorName ?? ''
   ]));
 
   // autoTable(doc, { head: [headers], body: data, startY: 30, styles: { fontSize: 8 } });
