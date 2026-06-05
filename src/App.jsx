@@ -11,6 +11,7 @@ import ScanIn from './pages/ScanIn';
 import ScanOutShipments from './pages/ScanOutShipments';
 import ScanOutDetails from './pages/ScanOutDetails';
 import PrintLabels from './pages/PrintLabels';
+import MROLabels from './pages/MROLabels';
 
 // auth
 import ProtectedRoute from './auth/ProtectedRoute';
@@ -68,6 +69,10 @@ export default function App() {
 
 		<Route element={<ProtectedRoute program="IEP-CDS" section="printlabels" />}>
 			<Route path="/printlabels" element={<PrintLabels/>} />
+		</Route>
+
+		<Route element={<ProtectedRoute program="IEP-CDS" section="mrolabels" />}>
+			<Route path="/mrolabels" element={<MROLabels />} />
 		</Route>
 
 			{/* Fallback */}

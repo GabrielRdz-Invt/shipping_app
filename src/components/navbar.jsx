@@ -33,8 +33,14 @@ export default function Navbar(){
                         <li className="nav-item mx-2">
                             <Link className="nav-link" to="/reports">Reports</Link>
                         </li>
-                        <li className="nav-item mx-2">
-                            <Link className="nav-link" to="/printlabels">Print Labels</Link>
+                        <li className="nav-item dropdown mx-2">
+                            <span className="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Print Labels
+                            </span>
+                            <ul className="dropdown-menu">
+                                <li><Link className="dropdown-item" to="/printlabels">FRU PVS Reprint</Link></li>
+                                <li><Link className="dropdown-item" to="/mrolabels">MRO Labels</Link></li>
+                            </ul>
                         </li>
                         <li className="nav-item dropdown mx-2">
                             <span className="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
