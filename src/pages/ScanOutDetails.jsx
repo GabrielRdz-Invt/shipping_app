@@ -310,7 +310,7 @@ export default function ScanOutDetails() {
                             </div>
                             <hr />
                             <div className="d-grid gap-2">
-                                <button className="btn btn-primary" disabled={!readyToScanOut || form.date_out === "" || form.truck_out_id === "" || form.bol_number === ""} onClick={scanOut}>Scan Out Shipment</button>
+                                <button className="btn btn-primary" disabled={!readyToScanOut || form.date_out === "" || form.truck_out_id === "" || form.bol_number === "" || pallets.length === 0} onClick={scanOut}>Scan Out Shipment</button>
                             </div>
                         </div>
                         

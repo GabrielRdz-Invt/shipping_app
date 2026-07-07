@@ -319,7 +319,7 @@ export default function PrintLabels()
                     <div className="card-body">
                         <div className="form-group mb-3">
                             <label htmlFor="date">Date:</label>
-                                <input id="date" type="text" className="form-control" value={form.date ?? ""} onChange={onChange("date")} disabled/>
+                            <input id="date" type="text" className="form-control" value={form.date ?? ""} onChange={onChange("date")} disabled/>
                         </div>
                         <div className="form-group mb-3">
                             <label htmlFor="serial">Part Number (HP): </label>
