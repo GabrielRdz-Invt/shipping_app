@@ -10,6 +10,7 @@ import SecondScan from './pages/SecondScan';
 import ScanIn from './pages/ScanIn';
 import ScanOutShipments from './pages/ScanOutShipments';
 import ScanOutDetails from './pages/ScanOutDetails';
+import ScanOutHistory from './pages/ScanOutHistory';
 import PrintLabels from './pages/PrintLabels';
 import MROLabels from './pages/MROLabels';
 
@@ -30,8 +31,8 @@ export default function App() {
 
   return (
 	<>
-	  {!hideNavbar && <Navbar />}
-	  <Routes>
+	{!hideNavbar && <Navbar />}
+	<Routes>
 		{/* Public */}
 		<Route path="/login" element={<Login />} />
 
@@ -75,9 +76,13 @@ export default function App() {
 			<Route path="/mrolabels" element={<MROLabels />} />
 		</Route>
 
+		<Route element={<ProtectedRoute program="IEP-CDS" section="scanouthistory" />}>
+			<Route path="/scanouthistory" element={<ScanOutHistory />} />
+		</Route>
+
 			{/* Fallback */}
-			<Route path="*" element={<Navigate to="/" replace />} />
-	  </Routes>
+		<Route path="*" element={<Navigate to="/" replace />} />
+	</Routes>
 	</>
   );
 }

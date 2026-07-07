@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import '../assets/css/loader.css';
 
@@ -8,17 +8,16 @@ export default function ScanOutShipments() {
     const [filter, setFilter] = useState("");
     const [loading, setLoading] = useState(false);
 
-    function loadScannedShipments(filter)
-    {
+    function loadScannedOutShipments(filter) {
         setLoading(true);
         let url = "";
         if (filter != null)
         {
-            url = "https://iep-app-n.iec.inventec:443/Warehouse_Api/api/IepCrossingDockShipments/GetScanInShipments?filter="+filter;
+            url = "https://iep-app-n.iec.inventec:443/Warehouse_Api/api/IepCrossingDockShipments/GetScannedOutShipments?filter="+filter;
         }
         else
         {
-            url = "https://iep-app-n.iec.inventec:443/Warehouse_Api/api/IepCrossingDockShipments/GetScanInShipments";
+            url = "https://iep-app-n.iec.inventec:443/Warehouse_Api/api/IepCrossingDockShipments/GetScannedOutShipments";
         }
         fetch(url, {
             method: 'get',
@@ -41,15 +40,16 @@ export default function ScanOutShipments() {
         const d = new Date(date);
         return d.toLocaleDateString();
     }
-
+    
     useEffect(() => {
-        loadScannedShipments();
+        loadScannedOutShipments();
     }, []);
-
+    
     useEffect(() => {
-        loadScannedShipments(filter);
+        loadScannedOutShipments(filter);
     }, [filter]);
-    //#endregion - region for functions
+    //#endregion
+    
 
     return (
         <>
@@ -62,30 +62,30 @@ export default function ScanOutShipments() {
         )}
         <div className="container">
             <div className="d-flex justify-content-between align-items-center mb-4 mt-2">
-                <h3 className="mb-0"><i className="bi bi-upc"/> - Scan Out Page</h3>
-                <Link to="/scanouthistory" className="btn btn-light btn-sm mt-2"><i className="bi bi-clock-history"/> Scanned Shipments History</Link>
+                <h3 className="mb-0"><i className="bi bi-clock-history"/> - Scan Out History</h3>
             </div>
 
             <div className="input-group mt-2 mb-3">
                 <span className="input-group-text"><i className="bi bi-search"/></span>
                 <input type="text" className="form-control" value={filter} onChange={(e) =>setFilter(e.target.value)} />
             </div>
-            
+
             <table className="table table-bordered table-sm">
                 <thead>
                     <tr>
                         <th>Delivery Number</th>
                         <th>Date In</th>
+                        <th>Date Out</th>
                         <th>Truck Number</th>
                         <th>Receiving Person</th>
                         <th>Qty</th>
-                        <th>Actions</th>
+                        <th>Delivery Note</th>
                     </tr>
                 </thead>
                 <tbody>
                     {scanned.length === 0 && !loading ? (
                         <tr>
-                            <td colSpan={6}>
+                            <td colSpan={7}>
                                 <div className="alert alert-warning">
                                     <h5 className="alert-heading">No Shipments Found</h5>
                                     Be sure of the following:
@@ -102,7 +102,8 @@ export default function ScanOutShipments() {
                         <tr key={s.id_scan}>
                             <td>{s.delivery_number}</td>
                             <td><span className="text-primary"><i className="bi bi-calendar"/></span> {formatDate(s.date_in)}</td>
-                            <td>{s.truck_id}</td>
+                            <td><span className="text-danger"><i className="bi bi-calendar"/></span> {formatDate(s.date_out)}</td>
+                            <td>{s.truck_out_id}</td>
                             <td>{s.receiving_person}</td>
                             <td><small>
                                 <b>Pallet Qty:</b> {s.pallet_qty}<br />
@@ -110,7 +111,7 @@ export default function ScanOutShipments() {
                                 <b>Unit Qty:</b> {s.unit_qty}<br />
                             </small></td>
                             <td>
-                                <Link to={`/scanoutdetails/${s.id_scan}`} className="btn btn-sm btn-outline-info"><i className="bi bi-box-arrow-right" /> Scan Out</Link>
+                                <span className="text-warning"><i className="bi bi-sticky"/></span> - {s.delivery_note}
                             </td>
                         </tr>
                     )))}
